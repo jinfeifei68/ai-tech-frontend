@@ -276,6 +276,119 @@
   flex-shrink: 0;
 }
 
+/* ===== 社区管理（成员 / 评论审核） ===== */
+.dash-community {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.dash-community p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+.dash-community strong {
+  color: var(--accent-cyan);
+}
+.dash-community__link {
+  color: var(--accent-cyan);
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+.section-admin-desc {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  margin-top: 6px;
+}
+
+.count-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.admin-tabs__btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.admin-tabs__btn:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+.admin-tabs__btn.active {
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: #fff;
+}
+
+.comment-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.comment-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.comment-card__author {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--accent-cyan);
+}
+.comment-card__meta {
+  font-size: 0.78rem;
+  color: var(--text-tertiary);
+}
+.comment-card__text {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  line-height: 1.65;
+  margin-bottom: 12px;
+}
+.comment-card__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.empty-tip {
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 32px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+}
+
 /* ===== 数据表格 ===== */
 .data-table {
   width: 100%;
