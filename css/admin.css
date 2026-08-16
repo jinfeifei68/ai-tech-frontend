@@ -774,6 +774,18 @@
   height: 34px;
 }
 
+.config-linklist-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.config-linklist-row .icon-btn {
+  width: 34px;
+  height: 34px;
+}
+
 /* ===== 响应式 ===== */
 @media (max-width: 768px) {
   .admin-sidebar-toggle {
@@ -818,7 +830,8 @@
 
   .config-stat-row,
   .config-path-row,
-  .config-social-row {
+  .config-social-row,
+  .config-linklist-row {
     grid-template-columns: 1fr;
   }
 }
