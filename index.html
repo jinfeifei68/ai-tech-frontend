@@ -8,8 +8,14 @@
   <meta name="author" content="AI 科技前沿">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#0b1020">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AI科技前沿">
   <link rel="canonical" href="https://ai.feige68.dpdns.org/">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon-180.png">
+  <link rel="manifest" href="/manifest.json">
 
   <!-- Open Graph / 社交分享卡片 -->
   <meta property="og:site_name" content="AI 科技前沿">
@@ -45,9 +51,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260816g">
+  <link rel="stylesheet" href="css/style.css?v=20260816h">
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+  <!-- Fuse.js 站内搜索 -->
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.basic.min.js" defer></script>
 </head>
 <body>
 
@@ -80,6 +88,12 @@
       </nav>
 
       <div class="header__actions">
+        <button class="search-toggle" id="searchToggle" aria-label="打开搜索" title="搜索 (Ctrl+K)">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
         <button class="theme-toggle" id="themeToggle" aria-label="切换明暗主题" title="切换主题">
           <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <circle cx="12" cy="12" r="5"/>
@@ -755,6 +769,28 @@
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </button>
 
-  <script src="js/main.js?v=20260816g"></script>
+  <!-- ===== 站内搜索面板 ===== -->
+  <div class="search-overlay" id="searchOverlay" aria-hidden="true">
+    <div class="search-modal" role="dialog" aria-modal="true" aria-label="站内搜索">
+      <div class="search-input-wrap">
+        <svg class="search-input__icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索文章、技能、视频..." autocomplete="off">
+        <kbd class="search-kbd" id="searchKbd">Ctrl K</kbd>
+      </div>
+      <div class="search-results" id="searchResults">
+        <div class="search-empty">输入关键词开始搜索</div>
+      </div>
+      <div class="search-footer">
+        <span><kbd>↑</kbd><kbd>↓</kbd> 选择</span>
+        <span><kbd>↵</kbd> 打开</span>
+        <span><kbd>Esc</kbd> 关闭</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js?v=20260816h"></script>
 </body>
 </html>
