@@ -80,9 +80,19 @@
     var titleEl = document.getElementById("articleTitle");
     if (titleEl) titleEl.textContent = article.title;
 
-    /* 摘要 */
+    /* 摘要 — 只在有正文且摘要是短文本时才显示，避免重复 */
     var excerptEl = document.getElementById("articleExcerpt");
-    if (excerptEl) excerptEl.textContent = article.excerpt || "";
+    var hasContent = article.content && article.content.trim().length > 0;
+    if (excerptEl) {
+      if (hasContent && article.excerpt && article.excerpt.length < 200) {
+        /* 有独立正文且摘要是短文本 → 正常显示摘要 */
+        excerptEl.textContent = article.excerpt;
+        excerptEl.style.display = "";
+      } else {
+        /* 没有独立正文（摘要即正文）或摘要太长 → 隐藏摘要区域，避免重复显示 */
+        excerptEl.style.display = "none";
+      }
+    }
 
     /* 元信息 */
     var dateEl = document.getElementById("articleDate");
