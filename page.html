@@ -3,32 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AI 科技要闻与知识分享平台，聚焦人工智能前沿动态与实战技能">
-  <meta name="keywords" content="AI,人工智能,科技要闻,技能分享,知识社区">
-  <meta name="author" content="AI 科技前沿">
+  <meta name="description" content="AI 科技前沿 — 团队介绍、投稿须知、联系方式与隐私政策">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#0b1020">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AI科技前沿">
-  <link rel="canonical" href="https://ai.feige68.dpdns.org/article.html">
+  <link rel="canonical" href="https://ai.feige68.dpdns.org/page.html">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="/icons/icon-180.png">
   <link rel="manifest" href="/manifest.json">
 
-  <!-- Open Graph / 社交分享卡片（JS 加载后会动态覆盖） -->
   <meta property="og:site_name" content="AI 科技前沿">
   <meta property="og:title" content="AI 科技前沿">
   <meta property="og:description" content="聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区">
   <meta property="og:type" content="article">
-  <meta property="og:url" content="https://ai.feige68.dpdns.org/article.html">
+  <meta property="og:url" content="https://ai.feige68.dpdns.org/page.html">
   <meta property="og:image" content="https://ai.feige68.dpdns.org/assets/og-cover.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
   <meta property="og:locale" content="zh_CN">
 
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="AI 科技前沿">
   <meta name="twitter:description" content="聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区">
@@ -63,72 +57,50 @@
     </div>
   </header>
 
-  <!-- Article Loading -->
-  <div id="articleLoading" class="article-loading">
+  <!-- Loading -->
+  <div id="pageLoading" class="article-loading">
     <div class="article-loading__spinner"></div>
-    <p>正在加载文章...</p>
+    <p>正在加载...</p>
   </div>
 
-  <!-- Article Error -->
-  <div id="articleError" class="article-error" style="display:none">
+  <!-- Error -->
+  <div id="pageError" class="article-error" style="display:none">
     <div class="article-error__icon">📄</div>
-    <h2 id="errorMsg">文章不存在</h2>
-    <p>该文章可能已被删除或链接有误</p>
+    <h2 id="errorMsg">页面不存在</h2>
+    <p>该页面可能已被删除或链接有误</p>
     <a href="/" class="btn btn--primary">返回首页</a>
   </div>
 
-  <!-- Article Content -->
-  <article id="articleContent" class="article-detail" style="display:none">
+  <!-- Page Content -->
+  <article id="pageContent" class="article-detail" style="display:none">
     <!-- Breadcrumb -->
     <div class="article-breadcrumb">
       <div class="container">
         <a href="/">首页</a>
         <span class="article-breadcrumb__sep">/</span>
-        <a href="/#news" id="breadcrumbCat">AI 要闻</a>
-        <span class="article-breadcrumb__sep">/</span>
-        <span id="breadcrumbTitle">文章详情</span>
+        <span id="breadcrumbTitle">页面</span>
       </div>
     </div>
 
-    <!-- Article Header -->
+    <!-- Page Header -->
     <header class="article-header">
       <div class="container">
-        <div class="article-header__cats">
-          <span class="article-header__cat" id="articleCat">大模型</span>
-          <span class="article-header__badge" id="articleBadge"></span>
-        </div>
-        <h1 class="article-header__title" id="articleTitle"></h1>
-        <p class="article-header__excerpt" id="articleExcerpt"></p>
+        <h1 class="article-header__title" id="pageTitle"></h1>
         <div class="article-header__meta">
-          <span class="article-header__date" id="articleDate"></span>
-          <span class="article-header__reads" id="articleReads"></span>
-          <button class="article-header__share" id="shareBtn" title="分享文章">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            分享
-          </button>
+          <span class="article-header__date" id="pageDate"></span>
         </div>
       </div>
     </header>
 
-    <!-- Hero Image -->
-    <div class="article-hero" id="articleHero"></div>
-
-    <!-- Article Body -->
+    <!-- Page Body -->
     <div class="article-body-wrapper">
       <div class="container">
-        <div class="article-body" id="articleBody"></div>
+        <div class="article-body" id="pageBody"></div>
 
-        <!-- Article Footer -->
+        <!-- Page Footer -->
         <div class="article-footer">
           <a href="/" class="btn btn--outline">← 返回首页</a>
-          <a href="/#news" class="btn btn--primary" id="moreBtn">更多要闻 →</a>
         </div>
-
-        <!-- Related Articles -->
-        <section class="article-related" id="articleRelated" style="display:none">
-          <h3 class="article-related__title">相关文章</h3>
-          <div class="article-related__grid" id="relatedGrid"></div>
-        </section>
       </div>
     </div>
   </article>
@@ -169,6 +141,6 @@
     </div>
   </footer>
 
-  <script src="js/article.js?v=20260816l"></script>
+  <script src="js/page.js?v=20260816l"></script>
 </body>
 </html>
