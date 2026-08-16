@@ -169,6 +169,7 @@ const SEED = {
       desc: "深入理解 async/await、事件循环、协程调度，掌握高并发编程核心技能。",
       tags: ["asyncio", "协程", "并发"],
       duration: "⏱ 45 分钟",
+      content: "## 为什么需要异步编程\n\n在 IO 密集型场景（网络请求、数据库查询、文件读写）中，同步代码会阻塞在等待上，异步编程可以让单线程在等待时切换去处理其他任务，成倍提升吞吐量。\n\n### 核心概念\n\n- **协程 (Coroutine)**：用 `async def` 定义的函数，可以在执行中暂停和恢复\n- **事件循环 (Event Loop)**：调度器，负责在协程之间切换\n- **await**：挂起当前协程，把控制权交还事件循环\n\n### 快速上手\n\n```python\nimport asyncio\n\nasync def fetch_data(name, delay):\n    print(f\"开始获取 {name}\")\n    await asyncio.sleep(delay)  # 模拟 IO 等待\n    print(f\"{name} 完成\")\n    return f\"{name} 的结果\"\n\nasync def main():\n    # 并发执行 3 个任务，总耗时 ≈ 最长的那个\n    results = await asyncio.gather(\n        fetch_data(\"任务A\", 2),\n        fetch_data(\"任务B\", 3),\n        fetch_data(\"任务C\", 1),\n    )\n    print(results)\n\nasyncio.run(main())\n```\n\n### 常见坑\n\n1. **忘记 await**：协程不 await 不会真正执行\n2. **在异步函数中使用同步阻塞调用**（如 `time.sleep`）：会卡死整个事件循环，改用 `asyncio.sleep`\n3. **CPU 密集任务不适合 asyncio**：应使用 `ProcessPoolExecutor`\n\n### 学习建议\n\n先掌握 `asyncio.gather` 和 `asyncio.TaskGroup`，再学习超时控制 (`wait_for`)、信号量 (`Semaphore`) 限流等进阶用法。",
     },
     {
       id: "s2",
@@ -179,6 +180,7 @@ const SEED = {
       desc: "手写梯度下降与反向传播，理解神经网络优化的数学本质。",
       tags: ["梯度下降", "优化", "NumPy"],
       duration: "⏱ 60 分钟",
+      content: "## 梯度下降的本质\n\n梯度下降是一种迭代优化算法：沿着损失函数下降最快的方向（负梯度）一小步一小步地走，直到到达最低点。\n\n### 数学形式\n\n参数更新公式：`θ = θ - α · ∇L(θ)`，其中 α 是学习率。\n\n### NumPy 实现\n\n```python\nimport numpy as np\n\n# 目标：拟合 y = 2x + 1\nX = np.array([1, 2, 3, 4], dtype=float)\ny = 2 * X + 1\n\nw, b = 0.0, 0.0  # 初始化参数\nlr = 0.01         # 学习率\n\nfor epoch in range(1000):\n    y_pred = w * X + b\n    error = y_pred - y\n    # 损失: MSE\n    loss = np.mean(error ** 2)\n    # 梯度\n    dw = 2 * np.mean(error * X)\n    db = 2 * np.mean(error)\n    # 更新\n    w -= lr * dw\n    b -= lr * db\n\nprint(f\"w={w:.4f}, b={b:.4f}\")  # w≈2.0, b≈1.0\n```\n\n### 三种变体\n\n| 变体 | 每次更新用的数据 | 特点 |\n|-----|----------------|------|\n| 批量 GD | 全部样本 | 稳定但慢 |\n| 随机 SGD | 单个样本 | 快但震荡大 |\n| Mini-batch | 一小批样本 | 折中，最常用 |\n\n### 关键调参技巧\n\n- 学习率过大 → 震荡不收敛；过小 → 收敛太慢\n- 学习率调度：训练后期减小学习率\n- 加动量 (Momentum) 可以冲过局部最优点",
     },
     {
       id: "s3",
@@ -189,6 +191,7 @@ const SEED = {
       desc: "逐层拆解 Self-Attention、Multi-Head 机制与位置编码，附 PyTorch 实现。",
       tags: ["Transformer", "PyTorch", "Attention"],
       duration: "⏱ 90 分钟",
+      content: "## Transformer 全景\n\nTransformer 由编码器和解码器组成，核心是 **自注意力机制 (Self-Attention)**：让序列中的每个位置都能直接「看到」其他所有位置。\n\n### Self-Attention 计算过程\n\n1. 每个词向量通过三个矩阵投影出 Q（查询）、K（键）、V（值）\n2. 计算注意力分数：`Score = QKᵀ / √d_k`\n3. Softmax 归一化后与 V 加权求和：`Output = softmax(QKᵀ/√d_k) · V`\n\n### PyTorch 简化实现\n\n```python\nimport torch\nimport torch.nn.functional as F\n\ndef self_attention(x, Wq, Wk, Wv):\n    Q, K, V = x @ Wq, x @ Wk, x @ Wv\n    d_k = Q.size(-1)\n    scores = Q @ K.transpose(-2, -1) / d_k ** 0.5\n    attn = F.softmax(scores, dim=-1)\n    return attn @ V\n```\n\n### 为什么需要 Multi-Head\n\n单头注意力只能捕捉一种关联模式。多头机制把向量拆到多个子空间并行做注意力，再拼接结果，让模型同时关注语法、语义、位置等不同关系。\n\n### 位置编码\n\nSelf-Attention 本身对顺序不敏感，需要给每个位置注入位置信息。经典做法是正弦位置编码，现代模型多用 RoPE（旋转位置编码）。\n\n### 延伸阅读\n\n- Attention Is All You Need (2017)\n- 可视化工具：The Illustrated Transformer",
     },
     {
       id: "s4",
@@ -199,6 +202,7 @@ const SEED = {
       desc: "构建企业级知识问答系统：向量数据库 + Embedding + LLM 端到端方案。",
       tags: ["RAG", "向量检索", "LangChain"],
       duration: "⏱ 75 分钟",
+      content: "## 什么是 RAG\n\nRAG（Retrieval-Augmented Generation）= 先检索、后生成。用外部知识库弥补大模型的两个短板：知识时效性差、容易幻觉。\n\n### 标准流程\n\n1. **离线索引**：文档切分 → Embedding 向量化 → 写入向量库\n2. **在线问答**：问题向量化 → 相似度检索 Top-K → 拼接 Prompt → LLM 生成答案\n\n### 最小可用示例\n\n```python\nfrom openai import OpenAI\nimport numpy as np\n\nclient = OpenAI()\n\ndef embed(texts):\n    resp = client.embeddings.create(\n        model=\"text-embedding-3-small\",\n        input=texts\n    )\n    return np.array([d.embedding for d in resp.data])\n\n# 检索最相关的文档块\nsims = embed([query]) @ doc_vectors.T\ntop_idx = sims[0].argsort()[-3:][::-1]\ncontext = \"\\n\".join(chunks[i] for i in top_idx)\n```\n\n### 提升效果的 5 个关键点\n\n1. **切分策略**：按语义段落切分比固定长度好，重叠 10%-20%\n2. **混合检索**：向量检索 + BM25 关键词检索，效果更稳\n3. **重排序 (Rerank)**：用 cross-encoder 对 Top-50 精排出 Top-5\n4. **引用溯源**：让模型标注答案来源，方便核验\n5. **评估闭环**：构建测试集，持续优化切分与检索参数",
     },
     {
       id: "s5",
@@ -209,6 +213,7 @@ const SEED = {
       desc: "INT8/INT4 量化、LoRA 微调、vLLM 部署 — 在消费级 GPU 上跑大模型。",
       tags: ["量化", "vLLM", "推理优化"],
       duration: "⏱ 55 分钟",
+      content: "## 为什么需要量化\n\nFP16 精度下 7B 模型需要约 14GB 显存，70B 需要约 140GB。量化把权重从 16 位压缩到 8 位 / 4 位，显存占用直接减半甚至降到 1/4。\n\n### 主流量化方案对比\n\n| 方案 | 位数 | 7B 显存 | 质量 | 适用场景 |\n|-----|-----|---------|------|---------|\n| FP16 | 16 | ~14 GB | 100% | 基线 |\n| INT8 (LLM.int8) | 8 | ~8 GB | ≈99% | 通用 |\n| GPTQ 4bit | 4 | ~4 GB | ≈97% | GPU 推理 |\n| GGUF Q4 (llama.cpp) | 4 | ~4 GB | ≈96% | CPU/Mac |\n| AWQ 4bit | 4 | ~4 GB | ≈98% | 高吞吐 |\n\n### vLLM 部署示例\n\n```bash\npip install vllm\n\nvllm serve Qwen/Qwen2.5-7B-Instruct-AWQ \\\n  --quantization awq \\\n  --max-model-len 8192 \\\n  --gpu-memory-utilization 0.9\n```\n\n### 选型建议\n\n- **有 A100/H100**：直接 vLLM + AWQ，吞吐最高\n- **只有消费级显卡 (24G)**：7B-14B 用 GPTQ/AWQ 4bit\n- **只有 CPU 或 Mac**：llama.cpp + GGUF\n- **追求极致显存节省**：看 QLoRA 微调方案",
     },
     {
       id: "s6",
@@ -219,6 +224,7 @@ const SEED = {
       desc: "从折线图到热力图，掌握科研级数据可视化的核心技巧。",
       tags: ["Matplotlib", "Seaborn", "可视化"],
       duration: "⏱ 40 分钟",
+      content: "## 可视化库怎么选\n\n- **Matplotlib**：基础库，控制力最强，适合定制出版级图表\n- **Seaborn**：基于 Matplotlib，一行代码出统计图，默认样式好看\n- 建议快速出图用 Seaborn，精细调整回落到 Matplotlib\n\n### 常用图表速查\n\n```python\nimport seaborn as sns\nimport matplotlib.pyplot as plt\n\n# 折线图：趋势\nsns.lineplot(data=df, x=\"month\", y=\"sales\")\n\n# 柱状图：对比\nsns.barplot(data=df, x=\"city\", y=\"gdp\")\n\n# 散点图：相关性\nsns.scatterplot(data=df, x=\"x\", y=\"y\", hue=\"label\")\n\n# 热力图：相关矩阵\nsns.heatmap(df.corr(), annot=True, cmap=\"coolwarm\")\n\n# 直方图 + 密度曲线：分布\nsns.histplot(data=df, x=\"age\", kde=True)\n\nplt.show()\n```\n\n### 五个专业技巧\n\n1. 中文乱码：`plt.rcParams['font.sans-serif'] = ['SimHei']`\n2. 多子图：`fig, axes = plt.subplots(2, 2)`\n3. 保存高清图：`plt.savefig('out.png', dpi=300, bbox_inches='tight')`\n4. 配色统一：`sns.set_palette(\"Set2\")`\n5. 白底去边框：`sns.despine()`",
     },
   ],
   videos: [
@@ -333,6 +339,31 @@ const SEED = {
       { id: "deploy", icon: "🚀", text: "模型部署", count: 4 },
     ],
     learningTip: "建议按「Python 基础 → 机器学习 → 深度学习 → NLP → 部署实战」的顺序循序渐进。",
+    charts: {
+      trend: {
+        title: "AI 模型参数量演进趋势 (2020-2026)",
+        labels: ["2020", "2021", "2022", "2023", "2024", "2025", "2026"],
+        data: [175, 280, 540, 1760, 2400, 3600, 5200],
+      },
+      radar: {
+        title: "热门 AI 技术方向",
+        labels: ["大模型", "RAG/Agent", "计算机视觉", "语音处理", "多模态", "AI安全"],
+        data: [95, 88, 72, 65, 82, 58],
+      },
+      doughnut: {
+        title: "社区学习偏好分布",
+        labels: ["大模型微调", "RAG 系统", "计算机视觉", "数据分析", "AI Agent"],
+        data: [32, 24, 18, 15, 11],
+      },
+      bar: {
+        title: "月度技术文章发布量 vs 阅读量",
+        labels: ["3月", "4月", "5月", "6月", "7月", "8月"],
+        sets: [
+          { label: "文章数", data: [45, 62, 78, 85, 102, 96] },
+          { label: "阅读量 (千)", data: [120, 185, 240, 310, 380, 350] },
+        ],
+      },
+    },
   },
 };
 
@@ -457,10 +488,21 @@ export async function onRequest(context) {
 
   /* ===== 单篇文章详情（公开） ===== */
 
-  /* GET /api/article?id=xxx — 获取单篇文章（含正文 content） */
+  /* GET /api/article?id=xxx[&type=skill] — 获取单篇内容（含正文 content）
+   * type=skill 时读取技能教程，正文从 skill:<id> 读取 */
   if (path === "article" && method === "GET") {
     const id = url.searchParams.get("id");
+    const type = url.searchParams.get("type") || "article";
     if (!id) return json({ error: "缺少 id 参数" }, 400);
+
+    /* 技能教程详情 */
+    if (type === "skill") {
+      const skills = await kvGetJSON(env, "skills", []);
+      const skill = skills.find(function (s) { return s.id === id; });
+      if (!skill) return json({ error: "技能不存在" }, 404);
+      const content = await env.CONTENT_KV.get("skill:" + id) || "";
+      return json({ ...skill, content: content });
+    }
 
     const articles = await kvGetJSON(env, "articles", []);
     const article = articles.find(function (a) { return a.id === id; });
@@ -495,17 +537,19 @@ export async function onRequest(context) {
       const { type, data } = body;
       if (!type || !data) return json({ error: "缺少 type 或 data" }, 400);
 
-      if (type === "articles") {
-        const items = await kvGetJSON(env, "articles", []);
+      /* articles / skills：正文分离存储（article:<id> / skill:<id>） */
+      if (type === "articles" || type === "skills") {
+        const items = await kvGetJSON(env, type, []);
         const newId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
         /* 分离 content 字段 */
         const { content, ...meta } = data;
         const newItem = { id: newId, ...meta };
         items.unshift(newItem);
-        await env.CONTENT_KV.put("articles", JSON.stringify(items));
+        await env.CONTENT_KV.put(type, JSON.stringify(items));
         /* 正文单独存储 */
+        const prefix = type === "articles" ? "article:" : "skill:";
         if (content) {
-          await env.CONTENT_KV.put("article:" + newId, content);
+          await env.CONTENT_KV.put(prefix + newId, content);
         }
         return json({ success: true, data: newItem });
       }
@@ -534,18 +578,20 @@ export async function onRequest(context) {
         return json({ success: true, data: updated });
       }
 
-      if (type === "articles") {
+      /* articles / skills：正文分离更新 */
+      if (type === "articles" || type === "skills") {
         if (!id) return json({ error: "缺少 id" }, 400);
-        const items = await kvGetJSON(env, "articles", []);
+        const items = await kvGetJSON(env, type, []);
         const index = items.findIndex(function (item) { return item.id === id; });
         if (index === -1) return json({ error: "未找到 id: " + id }, 404);
         /* 分离 content 字段 */
         const { content, ...meta } = data;
         items[index] = { ...items[index], ...meta, id: items[index].id };
-        await env.CONTENT_KV.put("articles", JSON.stringify(items));
+        await env.CONTENT_KV.put(type, JSON.stringify(items));
         /* 正文单独更新 */
+        const prefix = type === "articles" ? "article:" : "skill:";
         if (content !== undefined) {
-          await env.CONTENT_KV.put("article:" + id, content);
+          await env.CONTENT_KV.put(prefix + id, content);
         }
         return json({ success: true, data: items[index] });
       }
@@ -568,12 +614,13 @@ export async function onRequest(context) {
       const { type, id } = body;
       if (!type || !id) return json({ error: "缺少 type 或 id" }, 400);
 
-      if (type === "articles") {
-        const items = await kvGetJSON(env, "articles", []);
+      if (type === "articles" || type === "skills") {
+        const items = await kvGetJSON(env, type, []);
         const filtered = items.filter((item) => item.id !== id);
-        await env.CONTENT_KV.put("articles", JSON.stringify(filtered));
+        await env.CONTENT_KV.put(type, JSON.stringify(filtered));
         /* 同时删除正文 */
-        await env.CONTENT_KV.delete("article:" + id);
+        const prefix = type === "articles" ? "article:" : "skill:";
+        await env.CONTENT_KV.delete(prefix + id);
         return json({ success: true, remaining: filtered.length });
       }
 
@@ -598,20 +645,21 @@ export async function onRequest(context) {
 
     const results = {};
     for (const [key, value] of Object.entries(SEED)) {
-      if (key === "articles") {
-        /* 文章：分离存储元数据和正文 */
+      if (key === "articles" || key === "skills") {
+        /* 文章/技能：分离存储元数据和正文 */
+        const prefix = key === "articles" ? "article:" : "skill:";
         const metaData = value.map(function (a) {
           const { content, ...meta } = a;
           return meta;
         });
-        await env.CONTENT_KV.put("articles", JSON.stringify(metaData));
+        await env.CONTENT_KV.put(key, JSON.stringify(metaData));
         /* 每篇正文单独写入 */
         for (const a of value) {
           if (a.content) {
-            await env.CONTENT_KV.put("article:" + a.id, a.content);
+            await env.CONTENT_KV.put(prefix + a.id, a.content);
           }
         }
-        results.articles = value.length;
+        results[key] = value.length;
       } else {
         await env.CONTENT_KV.put(key, JSON.stringify(value));
         results[key] = Array.isArray(value) ? value.length : Object.keys(value).length;
