@@ -11,6 +11,7 @@ const BASE = "https://ai.feige68.dpdns.org";
 const STATIC_PAGES = [
   { url: "/", priority: "1.0", changefreq: "daily" },
   { url: "/article.html", priority: "0.6", changefreq: "weekly" },
+  { url: "/page.html", priority: "0.5", changefreq: "monthly" },
 ];
 
 async function kvGetJSON(env, key, fallback) {
@@ -34,7 +35,7 @@ function xmlEscape(str) {
     .replace(/'/g, "&apos;");
 }
 
-function buildSitemap(articles, skills, videos) {
+function buildSitemap(articles, skills, videos, pages) {
   const urls = [];
   const seen = new Set();
 
@@ -72,6 +73,15 @@ function buildSitemap(articles, skills, videos) {
     }
   }
 
+  // 内容页面（团队介绍/投稿须知/联系方式/隐私政策等）
+  (pages || []).forEach((p) => {
+    if (!p || !p.id) return;
+    const u = BASE + "/page.html?id=" + encodeURIComponent(p.id);
+    if (seen.has(u)) return;
+    seen.add(u);
+    urls.push(`  <url><loc>${u}</loc><lastmod>${(p.updatedAt || new Date().toISOString().slice(0, 10))}</lastmod><changefreq>monthly</changefreq><priority>0.4</priority></url>`);
+  });
+
   return (
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
@@ -83,13 +93,14 @@ function buildSitemap(articles, skills, videos) {
 export async function onRequest(context) {
   const env = context.env;
 
-  const [articles, skills, videos] = await Promise.all([
+  const [articles, skills, videos, pages] = await Promise.all([
     kvGetJSON(env, "articles", []),
     kvGetJSON(env, "skills", []),
     kvGetJSON(env, "videos", []),
+    kvGetJSON(env, "pages", []),
   ]);
 
-  const xml = buildSitemap(articles, skills, videos);
+  const xml = buildSitemap(articles, skills, videos, pages);
   return new Response(xml, {
     headers: {
       "Content-Type": "application/xml; charset=utf-8",
