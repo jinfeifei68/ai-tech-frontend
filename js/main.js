@@ -44,6 +44,26 @@
   const header = document.getElementById("header");
   const backToTop = document.getElementById("backToTop");
 
+  /* ===== 导航高亮（提前声明，避免 TDZ 错误） ===== */
+  const sections = document.querySelectorAll("section[id]");
+  const navLinks = document.querySelectorAll(".nav__link");
+
+  function updateActiveNav() {
+    var scrollPos = window.scrollY + 100;
+    var currentId = "";
+    sections.forEach(function (sec) {
+      if (scrollPos >= sec.offsetTop) {
+        currentId = sec.getAttribute("id");
+      }
+    });
+    navLinks.forEach(function (link) {
+      link.classList.remove("nav__link--active");
+      if (link.getAttribute("href") === "#" + currentId) {
+        link.classList.add("nav__link--active");
+      }
+    });
+  }
+
   function onScroll() {
     const y = window.scrollY;
     if (y > 20) {
@@ -65,26 +85,6 @@
   backToTop.addEventListener("click", function () {
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
-
-  /* ===== 导航高亮 ===== */
-  const sections = document.querySelectorAll("section[id]");
-  const navLinks = document.querySelectorAll(".nav__link");
-
-  function updateActiveNav() {
-    var scrollPos = window.scrollY + 100;
-    var currentId = "";
-    sections.forEach(function (sec) {
-      if (scrollPos >= sec.offsetTop) {
-        currentId = sec.getAttribute("id");
-      }
-    });
-    navLinks.forEach(function (link) {
-      link.classList.remove("nav__link--active");
-      if (link.getAttribute("href") === "#" + currentId) {
-        link.classList.add("nav__link--active");
-      }
-    });
-  }
 
   /* ===== 滚动揭示动画 ===== */
   var revealObserver = new IntersectionObserver(
