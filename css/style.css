@@ -612,10 +612,32 @@ input {
   position: relative;
   width: 100%;
   padding-top: 60%;
-  background-image: var(--img-url);
+  background-color: rgba(124, 77, 255, 0.08);
   background-size: cover;
   background-position: center;
   overflow: hidden;
+}
+
+/* 懒加载占位骨架 */
+.news-card__img.lazy-img {
+  background-image: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 60%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.6s infinite linear;
+}
+
+.news-card__img.is-loaded {
+  background-image: var(--img-url);
+  animation: none;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .news-card__img::after {
