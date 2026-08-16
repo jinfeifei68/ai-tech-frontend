@@ -1141,6 +1141,48 @@
       </div>
 
       <div class="config-section">
+        <h3>站点信息与外观</h3>
+        <p style="font-size:0.8rem;color:var(--text-tertiary);margin:0 0 16px">修改站点名称、Logo、首页文案与全站字号，保存后前台立即生效。</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>站点名称（导航栏 Logo 文字 / 浏览器标题）</label>
+            <input type="text" id="config_siteName" value="${escapeHtml(config.siteName || "")}" placeholder="如 AI科技前沿">
+          </div>
+          <div class="form-group">
+            <label>全站字号</label>
+            <select id="config_fontSize">
+              <option value="default"${config.fontSize === "default" || !config.fontSize ? " selected" : ""}>标准（默认）</option>
+              <option value="small"${config.fontSize === "small" ? " selected" : ""}>小字号</option>
+              <option value="large"${config.fontSize === "large" ? " selected" : ""}>大字号</option>
+              <option value="xlarge"${config.fontSize === "xlarge" ? " selected" : ""}>特大字号</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Logo 图片地址（可选；填图片 URL 后导航栏显示图片 Logo，留空用默认图标）</label>
+          <input type="text" id="config_logoUrl" value="${escapeHtml(config.logoUrl || "")}" placeholder="如 /assets/logo.png 或 https://...">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>首页主标题</label>
+            <input type="text" id="config_heroTitle" value="${escapeHtml(config.heroTitle || "")}" placeholder="如 AI 科技要闻">
+          </div>
+          <div class="form-group">
+            <label>首页副标题</label>
+            <input type="text" id="config_heroSubtitle" value="${escapeHtml(config.heroSubtitle || "")}" placeholder="如 技能知识分享 · 共同学习交流">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>首页描述文字（换行即分段）</label>
+          <textarea id="config_heroDesc" rows="3" placeholder="聚焦人工智能前沿动态...">${escapeHtml(config.heroDesc || "")}</textarea>
+        </div>
+        <div class="form-group">
+          <label>页脚站点描述（换行即分段）</label>
+          <textarea id="config_footerDesc" rows="2" placeholder="聚焦人工智能前沿动态...">${escapeHtml(config.footerDesc || "")}</textarea>
+        </div>
+      </div>
+
+      <div class="config-section">
         <h3>首页统计数据</h3>
         <div class="config-stats" id="configStats">
           ${stats.map(function (s, i) {
@@ -1319,6 +1361,13 @@
     };
 
     var data = {
+      siteName: val("config_siteName"),
+      logoUrl: val("config_logoUrl"),
+      heroTitle: val("config_heroTitle"),
+      heroSubtitle: val("config_heroSubtitle"),
+      heroDesc: val("config_heroDesc"),
+      footerDesc: val("config_footerDesc"),
+      fontSize: val("config_fontSize") || "default",
       stats: stats,
       heroBadge: val("config_heroBadge"),
       learningTip: val("config_learningTip"),

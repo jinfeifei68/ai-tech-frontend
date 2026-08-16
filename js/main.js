@@ -916,6 +916,69 @@
     }
   }
 
+  /* --- 应用站点品牌与外观配置（后台可改） --- */
+  var FONT_SIZE_MAP = {
+    small: "13.5px",
+    default: "",
+    large: "17.5px",
+    xlarge: "19px",
+  };
+
+  function applySiteBranding(cfg) {
+    if (!cfg) return;
+
+    /* 站点名称：页面标题 + 导航栏/页脚 Logo 文字 */
+    if (cfg.siteName) {
+      document.title = cfg.siteName + " | 要闻 · 分享 · 交流";
+      var logoText = document.getElementById("siteLogoText");
+      var footerLogoText = document.getElementById("footerLogoText");
+      if (logoText) logoText.textContent = cfg.siteName;
+      if (footerLogoText) footerLogoText.textContent = cfg.siteName;
+    }
+
+    /* Logo 图片：有地址则显示图片并隐藏默认图标 */
+    var logoImg = document.getElementById("siteLogoImg");
+    var logoIcon = document.getElementById("siteLogoIcon");
+    if (logoImg && logoIcon) {
+      if (cfg.logoUrl) {
+        logoImg.src = cfg.logoUrl;
+        logoImg.style.display = "";
+        logoIcon.style.display = "none";
+        logoImg.onerror = function () {
+          /* 图片加载失败时回退默认图标 */
+          logoImg.style.display = "none";
+          logoIcon.style.display = "";
+        };
+      } else {
+        logoImg.style.display = "none";
+        logoIcon.style.display = "";
+      }
+    }
+
+    /* 首页 Hero 文案 */
+    var heroTitle = document.getElementById("heroTitleText");
+    if (heroTitle && cfg.heroTitle) heroTitle.textContent = cfg.heroTitle;
+    var heroSubtitle = document.getElementById("heroSubtitleText");
+    if (heroSubtitle && cfg.heroSubtitle) heroSubtitle.textContent = cfg.heroSubtitle;
+    var heroDesc = document.getElementById("heroDescText");
+    if (heroDesc && cfg.heroDesc) {
+      heroDesc.innerHTML = esc(cfg.heroDesc).replace(/\n/g, "<br>");
+    }
+
+    /* 页脚描述 */
+    var footerDesc = document.getElementById("footerDescText");
+    if (footerDesc && cfg.footerDesc) {
+      footerDesc.innerHTML = esc(cfg.footerDesc).replace(/\n/g, "<br>");
+    }
+
+    /* 全站字号 */
+    if (cfg.fontSize && FONT_SIZE_MAP.hasOwnProperty(cfg.fontSize)) {
+      document.documentElement.style.fontSize = FONT_SIZE_MAP[cfg.fontSize];
+    } else {
+      document.documentElement.style.fontSize = "";
+    }
+  }
+
   /* --- 重新绑定内容相关事件 --- */
   function rebindContentEvents() {
     /* 要闻筛选 */
@@ -992,6 +1055,9 @@
       var response = await fetch("/api/content?type=all");
       if (!response.ok) return;
       var data = await response.json();
+
+      /* 站点品牌/外观配置优先应用（不依赖文章数据） */
+      applySiteBranding(data.site_config);
 
       /* 检查是否有实际数据 */
       if (!data.articles || data.articles.length === 0) return;

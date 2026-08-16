@@ -23,6 +23,50 @@
     return div.innerHTML;
   }
 
+  /* ===== 站点品牌同步（后台可配置：站名 / Logo / 字号） ===== */
+  var FONT_SIZE_MAP = {
+    small: "13.5px",
+    default: "",
+    large: "17.5px",
+    xlarge: "19px",
+  };
+
+  var siteNameCache = "";
+
+  async function loadSiteBranding() {
+    try {
+      var response = await fetch("/api/content?type=all");
+      if (!response.ok) return;
+      var data = await response.json();
+      var cfg = data.site_config;
+      if (!cfg) return;
+
+      if (cfg.siteName) {
+        siteNameCache = cfg.siteName;
+        var logoText = document.getElementById("siteLogoText");
+        if (logoText) logoText.textContent = cfg.siteName;
+      }
+
+      var logoImg = document.getElementById("siteLogoImg");
+      var logoIcon = document.getElementById("siteLogoIcon");
+      if (logoImg && logoIcon && cfg.logoUrl) {
+        logoImg.src = cfg.logoUrl;
+        logoImg.style.display = "";
+        logoIcon.style.display = "none";
+        logoImg.onerror = function () {
+          logoImg.style.display = "none";
+          logoIcon.style.display = "";
+        };
+      }
+
+      if (cfg.fontSize && FONT_SIZE_MAP.hasOwnProperty(cfg.fontSize)) {
+        document.documentElement.style.fontSize = FONT_SIZE_MAP[cfg.fontSize];
+      }
+    } catch (e) { /* 静默失败，保留默认外观 */ }
+  }
+
+  loadSiteBranding();
+
   /* ===== SEO / 社交卡片动态更新 ===== */
   function setMetaTag(selector, content) {
     if (content == null) return;
@@ -43,12 +87,12 @@
     var section = isSkill ? (pathLabels[article.path] || article.path || "技能教程") : (catLabels[article.category] || article.category || "AI 要闻");
 
     /* Title & Canonical */
-    document.title = article.title + " — AI 科技前沿";
+    document.title = article.title + " — " + (siteNameCache || "AI 科技前沿");
     var canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) canonical.setAttribute("href", pageUrl);
 
     /* Open Graph */
-    setMetaTag('meta[property="og:title"]', article.title + " — AI 科技前沿");
+    setMetaTag('meta[property="og:title"]', article.title + " — " + (siteNameCache || "AI 科技前沿"));
     setMetaTag('meta[property="og:description"]', description);
     setMetaTag('meta[property="og:type"]', "article");
     setMetaTag('meta[property="og:url"]', pageUrl);
@@ -57,7 +101,7 @@
     setMetaTag('meta[property="article:tag"]', typeName);
 
     /* Twitter */
-    setMetaTag('meta[name="twitter:title"]', article.title + " — AI 科技前沿");
+    setMetaTag('meta[name="twitter:title"]', article.title + " — " + (siteNameCache || "AI 科技前沿"));
     setMetaTag('meta[name="twitter:description"]', description);
     setMetaTag('meta[name="twitter:image"]', image);
 
@@ -140,7 +184,7 @@
     var isSkill = type === "skill";
 
     /* 标题 */
-    document.title = article.title + " — AI 科技前沿";
+    document.title = article.title + " — " + (siteNameCache || "AI 科技前沿");
     setArticleMeta(article, type);
 
     /* 面包屑 */
