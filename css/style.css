@@ -1815,10 +1815,33 @@ input {
   /* 视频 */
   .video-list {
     flex-direction: column;
+    gap: 10px;
   }
 
   .video-item {
     min-width: 0;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .video-item__thumb {
+    width: 104px;
+    height: 60px;
+    flex-shrink: 0;
+  }
+
+  .video-item__info h4 {
+    font-size: 0.82rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .video-item__info span {
+    font-size: 0.72rem;
+  }
+
+  .video-item__duration {
+    font-size: 0.65rem;
+    padding: 1px 4px;
   }
 
   /* 社区 */
@@ -1828,12 +1851,33 @@ input {
 
   /* Footer */
   .footer__grid {
-    grid-template-columns: 1fr;
-    gap: 28px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px 20px;
   }
 
   .footer__col--brand {
-    grid-column: span 1;
+    grid-column: span 2;
+    max-width: none;
+    text-align: center;
+  }
+
+  .footer__col--brand .footer__social {
+    justify-content: center;
+  }
+
+  .footer__col:last-child {
+    grid-column: span 2;
+  }
+
+  .footer__col:last-child .footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 24px;
+  }
+
+  .footer__col:last-child .footer__links li {
+    margin-bottom: 0;
   }
 
   .footer__bottom {
@@ -2142,32 +2186,4 @@ input {
 .skills__content,
 .skills__layout {
   min-width: 0;
-}
-
-/* 手机端底部信息三板块：两列网格布局（品牌行占满整行） */
-@media (max-width: 768px) {
-  .footer__grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 28px 20px;
-  }
-
-  .footer__col--brand {
-    grid-column: span 2;
-    max-width: none;
-  }
-
-  /* “关于我们”占满整行，链接横向排列，避免大片空白 */
-  .footer__col:last-child {
-    grid-column: span 2;
-  }
-
-  .footer__col:last-child .footer__links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 22px;
-  }
-
-  .footer__col:last-child .footer__links li {
-    margin-bottom: 0;
-  }
 }
