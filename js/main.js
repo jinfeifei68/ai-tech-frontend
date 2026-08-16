@@ -481,7 +481,7 @@
     var html = items.map(function (a) {
       var feat = a.featured ? " news-card--featured" : "";
       var bc = a.badgeType === "hot" ? " news-card__badge--hot" : a.badgeType === "new" ? " news-card__badge--new" : "";
-      return '<article class="news-card' + feat + ' reveal reveal--visible" data-category="' + esc(a.category) + '">' +
+      return '<article class="news-card' + feat + ' reveal reveal--visible" data-category="' + esc(a.category) + '" data-id="' + esc(a.id) + '" style="cursor:pointer">' +
         '<div class="news-card__img" style="--img-url: url(\'' + esc(a.image) + '\')">' +
         (a.badge ? '<span class="news-card__badge' + bc + '">' + esc(a.badge) + '</span>' : '') +
         '</div><div class="news-card__body">' +
@@ -489,7 +489,9 @@
         '<h3 class="news-card__title">' + esc(a.title) + '</h3>' +
         '<p class="news-card__excerpt">' + esc(a.excerpt) + '</p>' +
         '<div class="news-card__meta"><span class="news-card__date">' + esc(a.date) + '</span>' +
-        '<span class="news-card__reads">' + esc(a.reads) + ' 阅读</span></div></div></article>';
+        '<span class="news-card__reads">' + esc(a.reads) + ' 阅读</span></div>' +
+        '<span class="news-card__readmore">阅读全文 →</span>' +
+        '</div></article>';
     }).join("");
     var grid = document.querySelector(".news__grid");
     if (grid) grid.innerHTML = html;
@@ -621,6 +623,16 @@
           card.style.display = (filter === "all" || cat === filter) ? "" : "none";
           if (card.style.display !== "none") card.style.animation = "fadeInUp 0.4s ease";
         });
+      });
+    });
+
+    /* 文章卡片点击跳转详情页 */
+    newsCards.forEach(function (card) {
+      card.addEventListener("click", function () {
+        var id = card.getAttribute("data-id");
+        if (id) {
+          window.location.href = "article.html?id=" + encodeURIComponent(id);
+        }
       });
     });
 

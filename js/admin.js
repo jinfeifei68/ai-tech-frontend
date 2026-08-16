@@ -313,6 +313,7 @@
   }
 
   function editArticle(id) {
+    window.__editingArticleId = id || null;
     var a = id ? (contentData.articles || []).find(function (x) { return x.id === id; }) : null;
     openModal(id ? "编辑文章" : "新增文章", `
       <div class="form-group">
@@ -350,7 +351,15 @@
       </div>
       <div class="form-group">
         <label>摘要</label>
-        <textarea id="f_excerpt" placeholder="文章摘要...">${a ? escapeHtml(a.excerpt) : ""}</textarea>
+        <textarea id="f_excerpt" placeholder="文章摘要（显示在首页卡片和详情页顶部）...">${a ? escapeHtml(a.excerpt) : ""}</textarea>
+      </div>
+      <div class="form-group">
+        <label>正文内容 <span style="font-size:0.8rem;color:var(--text-tertiary)">(支持 Markdown 格式)</span></label>
+        <textarea id="f_content" class="editor-content" placeholder="## 标题&#10;&#10;正文内容...&#10;&#10;- 列表项1&#10;- 列表项2&#10;&#10;**加粗** *斜体* [链接](url)&#10;&#10;![图片](url)" style="min-height:300px;font-family:'JetBrains Mono',Consolas,monospace;font-size:0.9rem">${a ? escapeHtml(a._content || "") : ""}</textarea>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="btn btn--outline btn--sm" onclick="window.__admin.previewContent()" style="font-size:0.8rem">预览</button>
+          <span style="font-size:0.75rem;color:var(--text-tertiary);align-self:center">支持 Markdown：# 标题、**加粗**、- 列表、| 表格 |、\`代码\`</span>
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -373,6 +382,56 @@
         <button class="btn btn--primary btn--sm" onclick="window.__admin.saveArticle('${id || ""}')">保存</button>
       </div>
     `);
+
+    /* 如果是编辑已有文章，异步加载正文 */
+    if (id) {
+      loadArticleContent(id);
+    }
+  }
+
+  /* 异步加载文章正文 */
+  async function loadArticleContent(id) {
+    var textarea = document.getElementById("f_content");
+    if (!textarea) return;
+    textarea.placeholder = "正在加载正文...";
+    try {
+      var response = await fetch("/api/article?id=" + encodeURIComponent(id));
+      if (response.ok) {
+        var data = await response.json();
+        if (data.content) {
+          textarea.value = data.content;
+        }
+      }
+    } catch (e) {
+      textarea.placeholder = "正文加载失败，可重新输入";
+    }
+  }
+
+  /* 预览正文 */
+  function previewContent() {
+    var textarea = document.getElementById("f_content");
+    if (!textarea) return;
+    var content = textarea.value;
+    if (!content.trim()) { toast("正文为空", "info"); return; }
+
+    var previewHTML;
+    if (typeof marked !== "undefined") {
+      marked.setOptions({ breaks: true, gfm: true });
+      previewHTML = marked.parse(content);
+    } else {
+      previewHTML = "<pre>" + escapeHtml(content) + "</pre>";
+    }
+
+    openModal("正文预览", '<div class="article-preview">' + previewHTML + '</div><div style="display:flex;justify-content:flex-end;margin-top:16px"><button class="btn btn--primary btn--sm" onclick="window.__admin.backToEdit()">返回编辑</button></div>');
+  }
+
+  /* 返回编辑（从预览返回） */
+  function backToEdit() {
+    closeModal();
+    /* 重新打开编辑模态框 — 需要保存当前编辑的文章 ID */
+    if (window.__editingArticleId !== undefined) {
+      editArticle(window.__editingArticleId || null);
+    }
   }
 
   async function saveArticle(id) {
@@ -384,6 +443,7 @@
       badge: val("f_badge"),
       image: val("f_image"),
       excerpt: val("f_excerpt"),
+      content: val("f_content"),
       badgeType: val("f_badgeType"),
       featured: document.getElementById("f_featured").checked,
     };
@@ -1003,6 +1063,8 @@
     editArticle: editArticle,
     saveArticle: saveArticle,
     deleteArticle: deleteArticle,
+    previewContent: previewContent,
+    backToEdit: backToEdit,
     editSkill: editSkill,
     saveSkill: saveSkill,
     deleteSkill: deleteSkill,
