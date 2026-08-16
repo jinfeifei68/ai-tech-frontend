@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章详情 — AI 科技前沿</title>
+  <meta name="description" content="AI 科技要闻与知识分享平台">
+  <link rel="stylesheet" href="css/style.css?v=20260816">
+  <link rel="stylesheet" href="css/article.css?v=20260816">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a href="/" class="header__logo">
+        <span class="header__logo-icon">⚡</span>
+        <span class="header__logo-text">AI<em>科技前沿</em></span>
+      </a>
+      <nav class="nav" id="nav">
+        <a href="/#news" class="nav__link">AI 要闻</a>
+        <a href="/#skills" class="nav__link">技能分享</a>
+        <a href="/#videos" class="nav__link">视频教程</a>
+        <a href="/#data" class="nav__link">数据洞察</a>
+        <a href="/#community" class="nav__link">学习社区</a>
+      </nav>
+      <button class="header__toggle" id="navToggle" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Article Loading -->
+  <div id="articleLoading" class="article-loading">
+    <div class="article-loading__spinner"></div>
+    <p>正在加载文章...</p>
+  </div>
+
+  <!-- Article Error -->
+  <div id="articleError" class="article-error" style="display:none">
+    <div class="article-error__icon">📄</div>
+    <h2 id="errorMsg">文章不存在</h2>
+    <p>该文章可能已被删除或链接有误</p>
+    <a href="/" class="btn btn--primary">返回首页</a>
+  </div>
+
+  <!-- Article Content -->
+  <article id="articleContent" class="article-detail" style="display:none">
+    <!-- Breadcrumb -->
+    <div class="article-breadcrumb">
+      <div class="container">
+        <a href="/">首页</a>
+        <span class="article-breadcrumb__sep">/</span>
+        <a href="/#news">AI 要闻</a>
+        <span class="article-breadcrumb__sep">/</span>
+        <span id="breadcrumbTitle">文章详情</span>
+      </div>
+    </div>
+
+    <!-- Article Header -->
+    <header class="article-header">
+      <div class="container">
+        <div class="article-header__cats">
+          <span class="article-header__cat" id="articleCat">大模型</span>
+          <span class="article-header__badge" id="articleBadge"></span>
+        </div>
+        <h1 class="article-header__title" id="articleTitle"></h1>
+        <p class="article-header__excerpt" id="articleExcerpt"></p>
+        <div class="article-header__meta">
+          <span class="article-header__date" id="articleDate"></span>
+          <span class="article-header__reads" id="articleReads"></span>
+          <button class="article-header__share" id="shareBtn" title="分享文章">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            分享
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Image -->
+    <div class="article-hero" id="articleHero"></div>
+
+    <!-- Article Body -->
+    <div class="article-body-wrapper">
+      <div class="container">
+        <div class="article-body" id="articleBody"></div>
+
+        <!-- Article Footer -->
+        <div class="article-footer">
+          <a href="/" class="btn btn--outline">← 返回首页</a>
+          <a href="/#news" class="btn btn--primary">更多要闻 →</a>
+        </div>
+
+        <!-- Related Articles -->
+        <section class="article-related" id="articleRelated" style="display:none">
+          <h3 class="article-related__title">相关文章</h3>
+          <div class="article-related__grid" id="relatedGrid"></div>
+        </section>
+      </div>
+    </div>
+  </article>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="backToTop" title="回到顶部">↑</button>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__col">
+          <h4>AI 科技前沿</h4>
+          <p>每日更新 AI 领域最新要闻、技术分享与学习资源</p>
+        </div>
+        <div class="footer__col">
+          <h4>快速链接</h4>
+          <ul>
+            <li><a href="/#news">AI 要闻</a></li>
+            <li><a href="/#skills">技能分享</a></li>
+            <li><a href="/#videos">视频教程</a></li>
+            <li><a href="/#community">学习社区</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>关于</h4>
+          <ul>
+            <li><a href="/">关于我们</a></li>
+            <li><a href="/">联系方式</a></li>
+            <li><a href="/">隐私政策</a></li>
+            <li><a href="/admin.html">管理后台</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p>© 2026 AI 科技前沿 · 共同学习交流</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/article.js?v=20260816"></script>
+</body>
+</html>
