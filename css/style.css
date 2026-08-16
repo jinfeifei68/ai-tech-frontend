@@ -1649,14 +1649,15 @@ input {
     grid-template-columns: 1fr;
   }
 
+  /* 平板及手机：视频列表纵向排列，不横向 */
   .video-list {
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex-wrap: nowrap;
   }
 
   .video-item {
-    flex: 1 1 calc(50% - 6px);
-    min-width: 280px;
+    flex: none;
+    min-width: 0;
   }
 
   .charts__grid {
@@ -1815,10 +1816,12 @@ input {
   /* 视频 */
   .video-list {
     flex-direction: column;
+    flex-wrap: nowrap;
     gap: 10px;
   }
 
   .video-item {
+    flex: none;
     min-width: 0;
     padding: 10px;
     gap: 10px;
