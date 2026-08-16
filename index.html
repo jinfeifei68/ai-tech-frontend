@@ -51,7 +51,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260816i">
+  <link rel="stylesheet" href="css/style.css?v=20260816j">
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <!-- Fuse.js 站内搜索 -->
@@ -176,7 +176,7 @@
       <div class="section__header reveal">
         <span class="section__tag">LATEST NEWS</span>
         <h2 class="section__title">AI 要闻速递</h2>
-        <p class="section__subtitle">第一时间获取人工智能领域的重要新闻与技术突破</p>
+        <p class="section__subtitle" id="descNews">第一时间获取人工智能领域的重要新闻与技术突破</p>
       </div>
 
       <div class="news__filter reveal">
@@ -292,7 +292,7 @@
       <div class="section__header reveal">
         <span class="section__tag">SKILLS &amp; KNOWLEDGE</span>
         <h2 class="section__title">技能知识分享</h2>
-        <p class="section__subtitle">实战教程、技术拆解、经验总结 — 从入门到精通的系统学习路径</p>
+        <p class="section__subtitle" id="descSkills">实战教程、技术拆解、经验总结 — 从入门到精通的系统学习路径</p>
       </div>
 
       <div class="skills__layout">
@@ -457,7 +457,7 @@
       <div class="section__header reveal">
         <span class="section__tag">VIDEO TUTORIALS</span>
         <h2 class="section__title">视频教程专区</h2>
-        <p class="section__subtitle">高清视频教程，边看边练，轻松掌握 AI 实战技能</p>
+        <p class="section__subtitle" id="descVideos">高清视频教程，边看边练，轻松掌握 AI 实战技能</p>
       </div>
 
       <div class="videos__grid">
@@ -532,7 +532,7 @@
       <div class="section__header reveal">
         <span class="section__tag">DATA INSIGHTS</span>
         <h2 class="section__title">数据可视化洞察</h2>
-        <p class="section__subtitle">用数据说话 — AI 行业趋势、技术热度、学习数据一目了然</p>
+        <p class="section__subtitle" id="descCharts">用数据说话 — AI 行业趋势、技术热度、学习数据一目了然</p>
       </div>
 
       <div class="charts__grid">
@@ -585,7 +585,7 @@
       <div class="section__header reveal">
         <span class="section__tag">COMMUNITY</span>
         <h2 class="section__title">学习交流社区</h2>
-        <p class="section__subtitle">提出问题、分享见解、结识同行 — 在交流中共同成长</p>
+        <p class="section__subtitle" id="descCommunity">提出问题、分享见解、结识同行 — 在交流中共同成长</p>
       </div>
 
       <div class="community__layout">
@@ -761,8 +761,8 @@
       </div>
 
       <div class="footer__bottom">
-        <p>© 2026 AI科技前沿 · 共同学习，共同成长</p>
-        <p class="footer__built">Built with ❤️ for AI Learners</p>
+        <p id="footerCopyText">© 2026 AI科技前沿 · 共同学习，共同成长</p>
+        <p class="footer__built" id="footerBuiltText">Built with ❤️ for AI Learners</p>
       </div>
     </div>
   </footer>
@@ -794,6 +794,6 @@
     </div>
   </div>
 
-  <script src="js/main.js?v=20260816i"></script>
+  <script src="js/main.js?v=20260816j"></script>
 </body>
 </html>
