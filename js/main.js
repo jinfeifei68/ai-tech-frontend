@@ -531,20 +531,50 @@
     chartObserver.observe(chartSection);
   }
 
-  /* ===== 加入表单（演示） ===== */
+  /* ===== 加入社区表单（真实注册 → 写入 KV） ===== */
   var joinForm = document.querySelector(".join-form");
   if (joinForm) {
     joinForm.addEventListener("submit", function (e) {
       e.preventDefault();
+      var nameInput = joinForm.querySelector('input[aria-label="昵称"]');
+      var emailInput = joinForm.querySelector('input[aria-label="邮箱"]');
       var btn = joinForm.querySelector('button[type="submit"]');
-      var originalText = btn.textContent;
-      btn.textContent = "✓ 加入成功！";
-      btn.style.background = "var(--accent-green)";
-      joinForm.reset();
-      setTimeout(function () {
-        btn.textContent = originalText;
-        btn.style.background = "";
-      }, 2500);
+      var note = joinForm.querySelector(".join-card__note");
+      var originalNote = note ? note.innerHTML : "";
+      var name = nameInput.value.trim();
+      var email = emailInput.value.trim();
+
+      if (!name || !email) return;
+      btn.disabled = true;
+      btn.textContent = "提交中...";
+
+      fetch("/api/community/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname: name, email: email }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res.success) {
+            btn.textContent = "✓ 加入成功！";
+            btn.style.background = "var(--accent-green)";
+            if (note) note.innerHTML = "✅ 已登记，欢迎加入！";
+            joinForm.reset();
+          } else {
+            alert(res.error || "加入失败，请稍后再试");
+          }
+          setTimeout(function () {
+            btn.disabled = false;
+            btn.textContent = "立即加入";
+            btn.style.background = "";
+            if (note) note.innerHTML = originalNote;
+          }, 2500);
+        })
+        .catch(function () {
+          alert("网络错误，请稍后再试");
+          btn.disabled = false;
+          btn.textContent = "立即加入";
+        });
     });
   }
 
@@ -657,18 +687,52 @@
   }
 
   /* --- 渲染：讨论 --- */
+  /* 已审核评论（从 /api/community/comments 拉取） */
+  var communityComments = [];
+
+  function likedMap() {
+    try {
+      return JSON.parse(localStorage.getItem("ai_tech_liked") || "{}");
+    } catch (e) {
+      return {};
+    }
+  }
+
   function renderDiscussions(items) {
+    var liked = likedMap();
     var html = items.map(function (d) {
       var tags = (d.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join("");
       var alt = d.avatarAlt ? " discussion__avatar--alt" : "";
-      return '<div class="discussion"><div class="discussion__avatar' + alt + '">' + esc(d.avatar) + '</div>' +
+      var isLiked = !!liked[d.id];
+      var comments = communityComments.filter(function (c) { return c.discussionId === d.id; });
+      var commentsHTML = comments.map(function (c) {
+        return '<div class="discussion-comment">' +
+          '<div class="discussion-comment__head"><span class="discussion-comment__author">' + esc(c.nickname) + '</span>' +
+          '<span class="discussion-comment__time">' + esc(c.date) + '</span></div>' +
+          '<p class="discussion-comment__text">' + esc(c.content) + '</p></div>';
+      }).join("");
+      return '<div class="discussion">' +
+        '<div class="discussion__avatar' + alt + '">' + esc(d.avatar) + '</div>' +
         '<div class="discussion__content"><div class="discussion__head">' +
         '<span class="discussion__author">' + esc(d.author) + '</span>' +
         '<span class="discussion__time">' + esc(d.time) + '</span></div>' +
         '<h4 class="discussion__title">' + esc(d.title) + '</h4>' +
         '<p class="discussion__text">' + esc(d.text) + '</p>' +
         '<div class="discussion__tags">' + tags + '</div>' +
-        '<div class="discussion__stats"><span>💬 ' + d.replies + ' 回复</span><span>👍 ' + d.likes + '</span><span>👁 ' + esc(d.views) + '</span></div>' +
+        '<div class="discussion__stats">' +
+        '<span>💬 ' + esc(d.replies) + ' 回复</span>' +
+        '<button type="button" class="like-btn' + (isLiked ? " is-liked" : "") + '" data-id="' + esc(d.id) + '" title="点赞">' +
+        '<span class="like-btn__icon">' + (isLiked ? "👍" : "👍") + '</span>' +
+        '<span class="like-btn__count">' + esc(d.likes) + '</span></button>' +
+        '<span>👁 ' + esc(d.views) + '</span></div>' +
+        (commentsHTML ? '<div class="discussion-comments">' + commentsHTML + '</div>' : "") +
+        '<div class="discussion-reply">' +
+        '<button type="button" class="discussion-reply__toggle" data-id="' + esc(d.id) + '">💬 我也说两句</button>' +
+        '<form class="reply-form" data-id="' + esc(d.id) + '" style="display:none">' +
+        '<div class="reply-form__row"><input type="text" class="reply-form__name" placeholder="你的昵称（2-20字）" maxlength="20" required>' +
+        '<button type="submit" class="btn btn--primary btn--sm">提交评论</button></div>' +
+        '<textarea class="reply-form__content" placeholder="写下你的见解...（5-500字），审核通过后展示" maxlength="500" required></textarea>' +
+        '</form></div>' +
         '</div></div>';
     }).join("");
     var main = document.querySelector(".community__main");
@@ -678,6 +742,122 @@
       main.innerHTML = (title ? title.outerHTML : '<h3 class="community__sub-title">🔥 热门讨论</h3>') + html +
         '<a href="#" class="btn btn--outline community__more">查看更多讨论</a>';
     }
+    bindCommunityEvents();
+  }
+
+  /* --- 绑定社区互动事件（点赞 / 评论） --- */
+  function bindCommunityEvents() {
+    /* 点赞 */
+    document.querySelectorAll(".like-btn").forEach(function (btn) {
+      if (btn.getAttribute("data-bound")) return;
+      btn.setAttribute("data-bound", "1");
+      btn.addEventListener("click", function () {
+        if (btn.classList.contains("is-liked")) return;
+        var id = btn.getAttribute("data-id");
+        fetch("/api/community/like", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: id }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (!res.success) {
+              if (res.already) {
+                var map = likedMap();
+                map[id] = true;
+                localStorage.setItem("ai_tech_liked", JSON.stringify(map));
+                btn.classList.add("is-liked");
+              }
+              return;
+            }
+            var map = likedMap();
+            map[id] = true;
+            localStorage.setItem("ai_tech_liked", JSON.stringify(map));
+            btn.classList.add("is-liked");
+            var count = btn.querySelector(".like-btn__count");
+            if (count) count.textContent = res.likes;
+          })
+          .catch(function () {});
+      });
+    });
+
+    /* 评论框展开/收起 */
+    document.querySelectorAll(".discussion-reply__toggle").forEach(function (toggle) {
+      if (toggle.getAttribute("data-bound")) return;
+      toggle.setAttribute("data-bound", "1");
+      toggle.addEventListener("click", function () {
+        var form = toggle.parentElement.querySelector(".reply-form");
+        if (!form) return;
+        form.style.display = form.style.display === "none" ? "block" : "none";
+      });
+    });
+
+    /* 提交评论 */
+    document.querySelectorAll(".reply-form").forEach(function (form) {
+      if (form.getAttribute("data-bound")) return;
+      form.setAttribute("data-bound", "1");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var id = form.getAttribute("data-id");
+        var nameInput = form.querySelector(".reply-form__name");
+        var contentInput = form.querySelector(".reply-form__content");
+        var submitBtn = form.querySelector('button[type="submit"]');
+        var name = nameInput.value.trim();
+        var content = contentInput.value.trim();
+        if (name.length < 2 || name.length > 20) {
+          alert("昵称需为 2-20 个字符");
+          return;
+        }
+        if (content.length < 5 || content.length > 500) {
+          alert("评论内容需为 5-500 字");
+          return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = "提交中...";
+        fetch("/api/community/comment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ discussionId: id, nickname: name, content: content }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (res.success) {
+              form.reset();
+              form.style.display = "none";
+              alert("评论已提交，审核通过后会展示在讨论区");
+            } else {
+              alert(res.error || "提交失败，请稍后再试");
+            }
+            submitBtn.disabled = false;
+            submitBtn.textContent = "提交评论";
+          })
+          .catch(function () {
+            alert("网络错误，请稍后再试");
+            submitBtn.disabled = false;
+            submitBtn.textContent = "提交评论";
+          });
+      });
+    });
+  }
+
+  /* --- 加载已审核评论 --- */
+  function loadCommunityComments() {
+    fetch("/api/community/comments")
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        communityComments = res.data || [];
+        /* 若已有审核通过的评论，重新渲染讨论区展示出来 */
+        if (communityComments.length > 0) {
+          fetch("/api/content?type=discussions")
+            .then(function (r) { return r.json(); })
+            .then(function (dr) {
+              var list = dr.data || [];
+              if (list.length > 0) renderDiscussions(list);
+            })
+            .catch(function () {});
+        }
+      })
+      .catch(function () {});
   }
 
   /* --- 渲染：贡献者 --- */
@@ -804,6 +984,9 @@
         siteCharts = data.site_config.charts;
         if (chartsReady) updateChartColors();
       }
+
+      /* 异步加载已审核评论（不阻塞主流程） */
+      loadCommunityComments();
     } catch (e) {
       /* 本地开发或 API 未部署，保留静态内容 */
     }

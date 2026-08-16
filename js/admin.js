@@ -239,6 +239,8 @@
       case "skills": renderSkills(); break;
       case "videos": renderVideos(); break;
       case "discussions": renderDiscussions(); break;
+      case "members": renderMembers(); break;
+      case "comments": renderComments("pending"); break;
       case "contributors": renderContributors(); break;
       case "config": renderConfig(); break;
     }
@@ -264,17 +266,35 @@
         ${dashCard("💬 社区讨论", counts.discussions, "条讨论")}
         ${dashCard("🏆 贡献者", counts.contributors, "位贡献者")}
       </div>
+      <div id="dashCommunity" class="dash-community">
+        <p>⏳ 加载社区数据...</p>
+      </div>
       <div class="dash-info">
         <h3>快速操作指南</h3>
         <ul>
           <li>点击左侧导航栏进入对应内容管理页面</li>
           <li>每页可新增、编辑、删除内容，修改即时生效</li>
+          <li>「评论审核」页可审核访客提交的评论，通过后展示在前台</li>
+          <li>「成员管理」页可查看前台「加入社区」表单的注册名单</li>
           <li>「网站配置」页可修改首页统计数据、学习路径等</li>
           <li>「初始化数据」按钮可恢复所有内容为初始状态（谨慎使用）</li>
           <li>所有修改直接写入 Cloudflare KV，前台刷新即可看到更新</li>
         </ul>
       </div>
     `;
+    /* 异步加载社区数据 */
+    loadCommunityAdminData().then(function (cd) {
+      var el = document.getElementById("dashCommunity");
+      if (!el) return;
+      var pending = cd.pending || [];
+      var pendingBadge = pending.length > 0
+        ? ' <a href="#" class="dash-community__link" onclick="window.__admin.goSection(\'comments\');return false;">去审核 →</a>'
+        : "";
+      el.innerHTML =
+        '<p>👥 社区成员：<strong>' + (cd.members || []).length + '</strong> 人</p>' +
+        '<p>🕐 待审核评论：<strong>' + pending.length + '</strong> 条' + pendingBadge + '</p>' +
+        '<p>✅ 已审核评论：<strong>' + (cd.comments || []).length + '</strong> 条</p>';
+    });
   }
 
   function dashCard(label, value, sub) {
@@ -979,6 +999,129 @@
     });
   }
 
+  /* ===== 社区管理（成员 / 评论审核） ===== */
+  var communityData = { members: [], pending: [], comments: [] };
+
+  async function loadCommunityAdminData() {
+    try {
+      var results = await Promise.all([
+        api("/community/admin?scope=members"),
+        api("/community/admin?scope=pending"),
+        api("/community/admin?scope=comments"),
+      ]);
+      communityData = {
+        members: results[0].data || [],
+        pending: results[1].data || [],
+        comments: results[2].data || [],
+      };
+    } catch (e) {
+      communityData = { members: [], pending: [], comments: [] };
+    }
+    return communityData;
+  }
+
+  /* --- 成员管理 --- */
+  async function renderMembers() {
+    var data = await loadCommunityAdminData();
+    var items = data.members || [];
+    adminMain.innerHTML = `
+      <div class="section-admin-header">
+        <h2>👥 成员管理 <span class="count-badge">${items.length} 人</span></h2>
+        <p class="section-admin-desc">前台「加入社区」表单提交的注册名单（昵称 / 邮箱 / 时间）</p>
+      </div>
+      ${items.length === 0 ? '<div class="empty-tip">还没有成员注册。前台「加入社区」表单提交后，成员会出现在这里。</div>' : `
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>昵称</th><th>邮箱</th><th>注册时间</th><th>操作</th></tr></thead>
+          <tbody>
+            ${items.map(function (m) {
+              return `<tr>
+                <td>${escapeHtml(m.nickname)}</td>
+                <td>${escapeHtml(m.email)}</td>
+                <td>${escapeHtml(m.date || "")}</td>
+                <td><button class="icon-btn icon-btn--danger" onclick="window.__admin.deleteMember('${m.id}')" title="删除">🗑</button></td>
+              </tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>`}
+    `;
+  }
+
+  async function deleteMember(id) {
+    confirmDialog("删除成员", "确定删除该成员？此操作不可恢复。", async function () {
+      try {
+        await api("/community/member", { method: "DELETE", body: JSON.stringify({ id: id }) });
+        toast("已删除", "success");
+        renderMembers();
+      } catch (e) { toast(e.message, "error"); }
+    });
+  }
+
+  /* --- 评论审核（待审 / 已通过，页内切换） --- */
+  async function renderComments(tab) {
+    var data = await loadCommunityAdminData();
+    var pending = data.pending || [];
+    var approved = data.comments || [];
+    var activeTab = tab === "approved" ? "approved" : "pending";
+    var items = activeTab === "pending" ? pending : approved;
+
+    adminMain.innerHTML = `
+      <div class="section-admin-header">
+        <h2>🕐 评论审核 <span class="count-badge">${pending.length} 条待审</span></h2>
+        <p class="section-admin-desc">访客提交的评论审核通过后才会展示在前台讨论区</p>
+      </div>
+      <div class="admin-tabs">
+        <button class="admin-tabs__btn ${activeTab === "pending" ? "active" : ""}" onclick="window.__admin.renderComments('pending')">⏳ 待审核 (${pending.length})</button>
+        <button class="admin-tabs__btn ${activeTab === "approved" ? "active" : ""}" onclick="window.__admin.renderComments('approved')">✅ 已通过 (${approved.length})</button>
+      </div>
+      ${items.length === 0 ? '<div class="empty-tip">' + (activeTab === "pending" ? "暂无待审核评论" : "暂无已审核评论") + '</div>' : items.map(function (c) {
+        return `
+        <div class="comment-card">
+          <div class="comment-card__head">
+            <span class="comment-card__author">${escapeHtml(c.nickname)}</span>
+            <span class="comment-card__meta">${escapeHtml(c.date || "")} · 讨论：${escapeHtml(c.discussionTitle || c.discussionId)}</span>
+          </div>
+          <p class="comment-card__text">${escapeHtml(c.content)}</p>
+          <div class="comment-card__actions">
+            ${activeTab === "pending"
+              ? `<button class="btn btn--primary btn--sm" onclick="window.__admin.approveComment('${c.id}')">✓ 通过</button>
+                 <button class="btn btn--outline btn--sm" onclick="window.__admin.deleteComment('${c.id}', 'pending')">🗑 删除</button>`
+              : `<button class="btn btn--outline btn--sm" onclick="window.__admin.deleteComment('${c.id}', 'comments')">🗑 删除</button>`}
+          </div>
+        </div>`;
+      }).join("")}
+    `;
+  }
+
+  async function approveComment(id) {
+    try {
+      await api("/community/approve", { method: "POST", body: JSON.stringify({ id: id }) });
+      toast("已通过审核，前台可见", "success");
+      renderComments("pending");
+    } catch (e) { toast(e.message, "error"); }
+  }
+
+  async function deleteComment(id, from) {
+    confirmDialog("删除评论", "确定删除该评论？此操作不可恢复。", async function () {
+      try {
+        await api("/community/comment", { method: "DELETE", body: JSON.stringify({ id: id, from: from }) });
+        toast("已删除", "success");
+        renderComments(from === "pending" ? "pending" : "approved");
+      } catch (e) { toast(e.message, "error"); }
+    });
+  }
+
+  /* --- 切换后台页面 --- */
+  function goSection(section) {
+    var item = document.querySelector('.admin-nav__item[data-section="' + section + '"]');
+    if (item) {
+      document.querySelectorAll(".admin-nav__item").forEach(function (n) { n.classList.remove("active"); });
+      item.classList.add("active");
+      renderSection(section);
+    }
+  }
+
   /* ===== 网站配置 ===== */
   function renderConfig() {
     var config = contentData.site_config || {};
@@ -1242,6 +1385,12 @@
     editContributor: editContributor,
     saveContributor: saveContributor,
     deleteContributor: deleteContributor,
+    renderMembers: renderMembers,
+    deleteMember: deleteMember,
+    renderComments: renderComments,
+    approveComment: approveComment,
+    deleteComment: deleteComment,
+    goSection: goSection,
     saveConfig: saveConfig,
     addStatRow: addStatRow,
     addPathRow: addPathRow,
