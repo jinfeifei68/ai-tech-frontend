@@ -23,6 +23,70 @@
     return div.innerHTML;
   }
 
+  /* ===== SEO / 社交卡片动态更新 ===== */
+  function setMetaTag(selector, content) {
+    if (content == null) return;
+    var el = document.querySelector(selector);
+    if (el) el.setAttribute("content", String(content));
+  }
+
+  function setArticleMeta(article, type) {
+    var isSkill = type === "skill";
+    var baseUrl = "https://ai.feige68.dpdns.org";
+    var pageUrl = isSkill
+      ? baseUrl + "/article.html?type=skill&id=" + encodeURIComponent(article.id)
+      : baseUrl + "/article.html?id=" + encodeURIComponent(article.id);
+    var defaultImage = baseUrl + "/assets/og-cover.png";
+    var image = article.image || defaultImage;
+    var description = article.excerpt || article.desc || "聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区";
+    var typeName = isSkill ? "技能教程" : "AI 要闻";
+    var section = isSkill ? (pathLabels[article.path] || article.path || "技能教程") : (catLabels[article.category] || article.category || "AI 要闻");
+
+    /* Title & Canonical */
+    document.title = article.title + " — AI 科技前沿";
+    var canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.setAttribute("href", pageUrl);
+
+    /* Open Graph */
+    setMetaTag('meta[property="og:title"]', article.title + " — AI 科技前沿");
+    setMetaTag('meta[property="og:description"]', description);
+    setMetaTag('meta[property="og:type"]', "article");
+    setMetaTag('meta[property="og:url"]', pageUrl);
+    setMetaTag('meta[property="og:image"]', image);
+    setMetaTag('meta[property="article:section"]', section);
+    setMetaTag('meta[property="article:tag"]', typeName);
+
+    /* Twitter */
+    setMetaTag('meta[name="twitter:title"]', article.title + " — AI 科技前沿");
+    setMetaTag('meta[name="twitter:description"]', description);
+    setMetaTag('meta[name="twitter:image"]', image);
+
+    /* JSON-LD Article 结构化数据 */
+    var existing = document.getElementById("jsonld-article");
+    if (existing) existing.remove();
+    var script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = "jsonld-article";
+    script.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": article.title,
+      "description": description,
+      "image": image === defaultImage ? [image] : [image, defaultImage],
+      "url": pageUrl,
+      "datePublished": article.date || new Date().toISOString().slice(0, 10),
+      "dateModified": article.date || new Date().toISOString().slice(0, 10),
+      "author": { "@type": "Organization", "name": "AI 科技前沿" },
+      "publisher": {
+        "@type": "Organization",
+        "name": "AI 科技前沿",
+        "logo": { "@type": "ImageObject", "url": baseUrl + "/favicon.svg" },
+      },
+      "articleSection": section,
+    });
+    document.head.appendChild(script);
+  }
+
   var catLabels = {
     model: "大模型",
     application: "应用落地",
@@ -77,6 +141,7 @@
 
     /* 标题 */
     document.title = article.title + " — AI 科技前沿";
+    setArticleMeta(article, type);
 
     /* 面包屑 */
     var crumbCat = document.getElementById("breadcrumbCat");

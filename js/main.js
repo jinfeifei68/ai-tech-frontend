@@ -600,13 +600,42 @@
     return div.innerHTML;
   }
 
+  /* --- 图片懒加载（CSS 背景图） --- */
+  function initLazyImages() {
+    if (!("IntersectionObserver" in window)) {
+      /* 不支持 IntersectionObserver 的浏览器直接加载 */
+      document.querySelectorAll(".lazy-img[data-bg]").forEach(function (el) {
+        el.style.setProperty("--img-url", "url('" + el.dataset.bg + "')");
+        el.classList.add("is-loaded");
+      });
+      return;
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        if (el.dataset.bg) {
+          el.style.setProperty("--img-url", "url('" + el.dataset.bg + "')");
+          el.classList.add("is-loaded");
+          delete el.dataset.bg;
+        }
+        observer.unobserve(el);
+      });
+    }, { rootMargin: "200px 0px" });
+
+    document.querySelectorAll(".lazy-img[data-bg]").forEach(function (el) {
+      observer.observe(el);
+    });
+  }
+
   /* --- 渲染：要闻卡片 --- */
   function renderNewsCards(items) {
     var html = items.map(function (a) {
       var feat = a.featured ? " news-card--featured" : "";
       var bc = a.badgeType === "hot" ? " news-card__badge--hot" : a.badgeType === "new" ? " news-card__badge--new" : "";
       return '<article class="news-card' + feat + ' reveal reveal--visible" data-category="' + esc(a.category) + '" data-id="' + esc(a.id) + '" style="cursor:pointer">' +
-        '<div class="news-card__img" style="--img-url: url(\'' + esc(a.image) + '\')">' +
+        '<div class="news-card__img lazy-img" data-bg="' + esc(a.image) + '">' +
         (a.badge ? '<span class="news-card__badge' + bc + '">' + esc(a.badge) + '</span>' : '') +
         '</div><div class="news-card__body">' +
         '<span class="news-card__cat">' + esc(catLabels[a.category] || a.category) + '</span>' +
@@ -973,6 +1002,9 @@
       /* 重新绑定事件 */
       rebindContentEvents();
 
+      /* 启动图片懒加载（含静态卡片） */
+      initLazyImages();
+
       /* 更新学习建议 */
       if (data.site_config && data.site_config.learningTip) {
         var tip = document.querySelector(".skills__tip p");
@@ -991,6 +1023,9 @@
       /* 本地开发或 API 未部署，保留静态内容 */
     }
   }
+
+  /* 静态卡片也启用懒加载（动态内容会再次刷新） */
+  initLazyImages();
 
   /* 启动动态加载 */
   loadDynamicContent();
