@@ -5,6 +5,13 @@
 (function () {
   "use strict";
 
+  /* ===== PWA: Service Worker 注册 ===== */
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  }
+
   /* ===== 主题切换 ===== */
   const themeToggle = document.getElementById("themeToggle");
   const html = document.documentElement;
@@ -1002,7 +1009,7 @@
       /* 重新绑定事件 */
       rebindContentEvents();
 
-      /* 启动图片懒加载（含静态卡片） */
+      /* 启动图片懒加载（含动态内容） */
       initLazyImages();
 
       /* 更新学习建议 */
@@ -1017,11 +1024,185 @@
         if (chartsReady) updateChartColors();
       }
 
+      /* 构建站内搜索索引 */
+      initSearch(data);
+
       /* 异步加载已审核评论（不阻塞主流程） */
       loadCommunityComments();
     } catch (e) {
       /* 本地开发或 API 未部署，保留静态内容 */
     }
+  }
+
+  /* ========================================
+     站内搜索（Fuse.js）
+     ======================================== */
+  var searchOverlay = document.getElementById("searchOverlay");
+  var searchInput = document.getElementById("searchInput");
+  var searchResults = document.getElementById("searchResults");
+  var searchToggle = document.getElementById("searchToggle");
+  var searchKbd = document.getElementById("searchKbd");
+  var fuse = null;
+  var searchItems = [];
+  var activeIndex = -1;
+  var isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+
+  function initSearch(data) {
+    searchItems = [];
+    if (data.articles) {
+      data.articles.forEach(function (a) {
+        searchItems.push({
+          type: "article",
+          typeLabel: "文章",
+          title: a.title || "",
+          summary: a.summary || "",
+          category: a.category || "",
+          url: "article.html?id=" + encodeURIComponent(a.id)
+        });
+      });
+    }
+    if (data.skills) {
+      data.skills.forEach(function (s) {
+        searchItems.push({
+          type: "skill",
+          typeLabel: "技能",
+          title: s.title || "",
+          summary: s.summary || "",
+          category: s.category || s.level || "",
+          url: "article.html?type=skill&id=" + encodeURIComponent(s.id)
+        });
+      });
+    }
+    if (data.videos) {
+      data.videos.forEach(function (v, idx) {
+        searchItems.push({
+          type: "video",
+          typeLabel: "视频",
+          title: v.title || "",
+          summary: v.desc || v.description || "",
+          category: "",
+          url: "/#videos"
+        });
+      });
+    }
+    if (typeof Fuse !== "undefined" && searchItems.length) {
+      fuse = new Fuse(searchItems, {
+        keys: ["title", "summary", "category"],
+        threshold: 0.35,
+        includeScore: false,
+        minMatchCharLength: 1
+      });
+    }
+  }
+
+  function openSearch() {
+    if (!searchOverlay) return;
+    searchOverlay.classList.add("search-overlay--open");
+    searchOverlay.setAttribute("aria-hidden", "false");
+    if (searchInput) {
+      searchInput.value = "";
+      searchInput.focus();
+    }
+    if (searchResults) searchResults.innerHTML = '<div class="search-empty">输入关键词开始搜索</div>';
+    activeIndex = -1;
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeSearch() {
+    if (!searchOverlay) return;
+    searchOverlay.classList.remove("search-overlay--open");
+    searchOverlay.setAttribute("aria-hidden", "true");
+    if (searchInput) searchInput.blur();
+    activeIndex = -1;
+    document.body.style.overflow = "";
+  }
+
+  function setActiveIndex(next) {
+    var items = searchResults ? searchResults.querySelectorAll(".search-result-item") : [];
+    if (!items.length) return;
+    if (next < 0) next = 0;
+    if (next >= items.length) next = items.length - 1;
+    activeIndex = next;
+    items.forEach(function (item, idx) {
+      item.classList.toggle("search-result-item--active", idx === activeIndex);
+    });
+    if (items[activeIndex]) items[activeIndex].scrollIntoView({ block: "nearest" });
+  }
+
+  function renderSearch(query) {
+    activeIndex = -1;
+    var q = (query || "").trim();
+    if (!q) {
+      if (searchResults) searchResults.innerHTML = '<div class="search-empty">输入关键词开始搜索</div>';
+      return;
+    }
+    var results = [];
+    if (fuse) {
+      results = fuse.search(q).map(function (r) { return r.item; });
+    } else {
+      var low = q.toLowerCase();
+      results = searchItems.filter(function (item) {
+        return (item.title + item.summary + item.category).toLowerCase().indexOf(low) !== -1;
+      });
+    }
+    if (!results.length) {
+      if (searchResults) searchResults.innerHTML = '<div class="search-no-results">未找到相关内容，换个关键词试试</div>';
+      return;
+    }
+    var html = results.slice(0, 8).map(function (item, idx) {
+      return '<a class="search-result-item" href="' + esc(item.url) + '" data-idx="' + idx + '">' +
+        '<div class="search-result__meta">' +
+          '<span class="search-result__badge search-result__badge--' + esc(item.type) + '">' + esc(item.typeLabel) + '</span>' +
+          '<span class="search-result__title">' + esc(item.title) + '</span>' +
+        '</div>' +
+        '<div class="search-result__desc">' + esc(item.summary) + '</div>' +
+      '</a>';
+    }).join('');
+    if (searchResults) searchResults.innerHTML = html;
+  }
+
+  if (searchToggle) searchToggle.addEventListener("click", openSearch);
+  if (searchKbd) searchKbd.textContent = isMac ? "⌘ K" : "Ctrl K";
+
+  document.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      if (searchOverlay && searchOverlay.classList.contains("search-overlay--open")) {
+        closeSearch();
+      } else {
+        openSearch();
+      }
+      return;
+    }
+    if (e.key === "Escape") {
+      closeSearch();
+      return;
+    }
+    if (!searchOverlay || !searchOverlay.classList.contains("search-overlay--open")) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex(activeIndex + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex(activeIndex - 1);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      var items = searchResults ? searchResults.querySelectorAll(".search-result-item") : [];
+      var target = items[activeIndex] || items[0];
+      if (target) window.location.href = target.getAttribute("href");
+    }
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener("input", function () {
+      renderSearch(searchInput.value);
+    });
+  }
+
+  if (searchOverlay) {
+    searchOverlay.addEventListener("click", function (e) {
+      if (e.target === searchOverlay) closeSearch();
+    });
   }
 
   /* 静态卡片也启用懒加载（动态内容会再次刷新） */
