@@ -30,10 +30,25 @@
     industry: "产业动态",
   };
 
+  var pathLabels = {
+    python: "Python 进阶",
+    ml: "机器学习",
+    dl: "深度学习",
+    nlp: "NLP & LLM",
+    deploy: "模型部署",
+    all: "全部技能",
+  };
+
   /* ===== 获取 URL 参数 ===== */
   function getArticleId() {
     var params = new URLSearchParams(window.location.search);
     return params.get("id");
+  }
+
+  /* 内容类型：article（默认）| skill（技能教程） */
+  function getContentType() {
+    var params = new URLSearchParams(window.location.search);
+    return params.get("type") === "skill" ? "skill" : "article";
   }
 
   /* ===== 显示/隐藏 ===== */
@@ -56,24 +71,36 @@
     contentEl.style.display = "block";
   }
 
-  /* ===== 渲染文章 ===== */
-  function renderArticle(article) {
+  /* ===== 渲染文章/技能 ===== */
+  function renderArticle(article, type) {
+    var isSkill = type === "skill";
+
     /* 标题 */
     document.title = article.title + " — AI 科技前沿";
 
     /* 面包屑 */
+    var crumbCat = document.getElementById("breadcrumbCat");
+    if (crumbCat) {
+      crumbCat.textContent = isSkill ? "技能分享" : "AI 要闻";
+      crumbCat.href = isSkill ? "/#skills" : "/#news";
+    }
     var breadcrumbTitle = document.getElementById("breadcrumbTitle");
     if (breadcrumbTitle) breadcrumbTitle.textContent = article.title.slice(0, 20) + "...";
 
     /* 分类 */
     var catEl = document.getElementById("articleCat");
-    if (catEl) catEl.textContent = catLabels[article.category] || article.category;
+    if (catEl) {
+      catEl.textContent = isSkill
+        ? pathLabels[article.path] || article.path || "技能教程"
+        : catLabels[article.category] || article.category;
+    }
 
     /* 标签 */
     var badgeEl = document.getElementById("articleBadge");
     if (badgeEl) {
-      badgeEl.textContent = article.badge || "";
-      badgeEl.style.display = article.badge ? "" : "none";
+      var badgeText = isSkill ? article.level || "" : article.badge || "";
+      badgeEl.textContent = badgeText;
+      badgeEl.style.display = badgeText ? "" : "none";
     }
 
     /* 标题 */
@@ -84,9 +111,10 @@
     var excerptEl = document.getElementById("articleExcerpt");
     var hasContent = article.content && article.content.trim().length > 0;
     if (excerptEl) {
-      if (hasContent && article.excerpt && article.excerpt.length < 200) {
+      var excerpt = isSkill ? article.desc : article.excerpt;
+      if (hasContent && excerpt && excerpt.length < 200) {
         /* 有独立正文且摘要是短文本 → 正常显示摘要 */
-        excerptEl.textContent = article.excerpt;
+        excerptEl.textContent = excerpt;
         excerptEl.style.display = "";
       } else {
         /* 没有独立正文（摘要即正文）或摘要太长 → 隐藏摘要区域，避免重复显示 */
@@ -96,21 +124,33 @@
 
     /* 元信息 */
     var dateEl = document.getElementById("articleDate");
-    if (dateEl) dateEl.textContent = article.date || "";
+    if (dateEl) {
+      dateEl.textContent = article.date || "";
+      dateEl.style.display = article.date ? "" : "none";
+    }
 
     var readsEl = document.getElementById("articleReads");
-    if (readsEl) readsEl.textContent = (article.reads || "0") + " 阅读";
+    if (readsEl) {
+      readsEl.textContent = isSkill
+        ? article.duration || "技能教程"
+        : (article.reads || "0") + " 阅读";
+    }
 
-    /* Hero 图片 */
+    /* Hero 图片（技能无主图时隐藏） */
     var heroEl = document.getElementById("articleHero");
-    if (heroEl && article.image) {
-      heroEl.style.backgroundImage = "url('" + article.image + "')";
+    if (heroEl) {
+      if (article.image) {
+        heroEl.style.backgroundImage = "url('" + article.image + "')";
+        heroEl.style.display = "";
+      } else {
+        heroEl.style.display = "none";
+      }
     }
 
     /* 正文（Markdown 渲染） */
     var bodyEl = document.getElementById("articleBody");
     if (bodyEl) {
-      var content = article.content || article.excerpt || "暂无正文内容";
+      var content = article.content || (isSkill ? article.desc : article.excerpt) || "暂无正文内容";
       if (typeof marked !== "undefined") {
         /* 配置 marked */
         marked.setOptions({
@@ -124,23 +164,32 @@
       }
     }
 
+    /* 底部按钮与相关内容标题 */
+    var moreBtn = document.getElementById("moreBtn");
+    if (moreBtn) {
+      moreBtn.href = isSkill ? "/#skills" : "/#news";
+      moreBtn.textContent = isSkill ? "更多技能 →" : "更多要闻 →";
+    }
+
     showContent();
   }
 
-  /* ===== 相关文章 ===== */
-  async function loadRelated(currentId, category) {
+  /* ===== 相关内容 ===== */
+  async function loadRelated(currentId, category, type) {
+    var isSkill = type === "skill";
     try {
-      var response = await fetch("/api/content?type=articles");
+      var response = await fetch("/api/content?type=" + (isSkill ? "skills" : "articles"));
       if (!response.ok) return;
       var data = await response.json();
-      var articles = data.data || data.articles || [];
+      var items = data.data || data.articles || [];
 
-      /* 同分类优先，排除当前文章 */
-      var same = articles.filter(function (a) {
-        return a.id !== currentId && a.category === category;
+      /* 技能：同路径优先；文章：同分类优先。均排除当前项 */
+      var groupKey = isSkill ? "path" : "category";
+      var same = items.filter(function (a) {
+        return a.id !== currentId && a[groupKey] === category;
       });
-      var others = articles.filter(function (a) {
-        return a.id !== currentId && a.category !== category;
+      var others = items.filter(function (a) {
+        return a.id !== currentId && a[groupKey] !== category;
       });
       var related = same.concat(others).slice(0, 3);
 
@@ -150,15 +199,28 @@
       var relatedSection = document.getElementById("articleRelated");
       if (!grid || !relatedSection) return;
 
+      var linkBase = isSkill ? "article.html?type=skill&id=" : "article.html?id=";
+
       grid.innerHTML = related.map(function (a) {
-        return '<a class="related-card" href="article.html?id=' + esc(a.id) + '">' +
-          '<div class="related-card__img" style="background-image:url(\'' + esc(a.image) + '\')"></div>' +
+        var img = a.image || a.poster || "";
+        var imgHTML = img
+          ? '<div class="related-card__img" style="background-image:url(\'' + esc(img) + '\')"></div>'
+          : '<div class="related-card__img related-card__img--icon">' + esc(a.icon || "📘") + "</div>";
+        var catText = isSkill
+          ? pathLabels[a.path] || a.path
+          : catLabels[a.category] || a.category;
+        return '<a class="related-card" href="' + linkBase + esc(a.id) + '">' +
+          imgHTML +
           '<div class="related-card__body">' +
-          '<span class="related-card__cat">' + esc(catLabels[a.category] || a.category) + '</span>' +
+          '<span class="related-card__cat">' + esc(catText) + '</span>' +
           '<h4 class="related-card__title">' + esc(a.title) + '</h4>' +
-          '<span class="related-card__date">' + esc(a.date) + '</span>' +
+          '<span class="related-card__date">' + esc(isSkill ? a.duration || "" : a.date || "") + '</span>' +
           '</div></a>';
       }).join("");
+
+      /* 标题 */
+      var titleEl = relatedSection.querySelector(".article-related__title");
+      if (titleEl) titleEl.textContent = isSkill ? "相关技能教程" : "相关文章";
 
       relatedSection.style.display = "block";
     } catch (e) {
@@ -224,30 +286,33 @@
   /* ===== 主流程 ===== */
   async function init() {
     var id = getArticleId();
+    var type = getContentType();
 
     if (!id) {
-      showError("未指定文章");
+      showError(type === "skill" ? "未指定技能" : "未指定文章");
       return;
     }
 
     showLoading();
 
     try {
-      var response = await fetch("/api/article?id=" + encodeURIComponent(id));
+      var url = "/api/article?id=" + encodeURIComponent(id) + (type === "skill" ? "&type=skill" : "");
+      var response = await fetch(url);
 
       if (!response.ok) {
         var errData = {};
         try { errData = await response.json(); } catch (e) {}
-        showError(errData.error || "文章不存在");
+        showError(errData.error || "内容不存在");
         return;
       }
 
       var article = await response.json();
-      renderArticle(article);
+      renderArticle(article, type);
       setupShare();
 
-      /* 加载相关文章 */
-      loadRelated(article.id, article.category);
+      /* 加载相关内容（技能按路径分组，文章按分类分组） */
+      var groupKey = type === "skill" ? article.path : article.category;
+      loadRelated(article.id, groupKey, type);
     } catch (e) {
       showError("加载失败，请检查网络连接");
     }

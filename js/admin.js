@@ -313,7 +313,7 @@
   }
 
   function editArticle(id) {
-    window.__editingArticleId = id || null;
+    window.__editingCtx = { type: "article", id: id || null };
     var a = id ? (contentData.articles || []).find(function (x) { return x.id === id; }) : null;
     openModal(id ? "编辑文章" : "新增文章", `
       <div class="form-group">
@@ -425,12 +425,15 @@
     openModal("正文预览", '<div class="article-preview">' + previewHTML + '</div><div style="display:flex;justify-content:flex-end;margin-top:16px"><button class="btn btn--primary btn--sm" onclick="window.__admin.backToEdit()">返回编辑</button></div>');
   }
 
-  /* 返回编辑（从预览返回） */
+  /* 返回编辑（从预览返回，支持文章/技能两种编辑器） */
   function backToEdit() {
     closeModal();
-    /* 重新打开编辑模态框 — 需要保存当前编辑的文章 ID */
-    if (window.__editingArticleId !== undefined) {
-      editArticle(window.__editingArticleId || null);
+    var ctx = window.__editingCtx;
+    if (!ctx) return;
+    if (ctx.type === "skill") {
+      editSkill(ctx.id || null);
+    } else {
+      editArticle(ctx.id || null);
     }
   }
 
@@ -506,6 +509,7 @@
   }
 
   function editSkill(id) {
+    window.__editingCtx = { type: "skill", id: id || null };
     var s = id ? (contentData.skills || []).find(function (x) { return x.id === id; }) : null;
     openModal(id ? "编辑技能" : "新增技能", `
       <div class="form-row">
@@ -528,7 +532,7 @@
         <input type="text" id="f_title" value="${s ? escapeHtml(s.title) : ""}" placeholder="技能标题">
       </div>
       <div class="form-group">
-        <label>描述</label>
+        <label>描述（显示在首页卡片和详情页顶部）</label>
         <textarea id="f_desc" placeholder="技能描述...">${s ? escapeHtml(s.desc) : ""}</textarea>
       </div>
       <div class="form-row">
@@ -551,12 +555,59 @@
         <label>标签</label>
         ${tagsInputHTML("skills", s ? s.tags : [])}
       </div>
+      <div class="form-group">
+        <label>教程正文 <span style="font-size:0.8rem;color:var(--text-tertiary)">(支持 Markdown，点击卡片即可查看)</span></label>
+        <textarea id="f_content" class="editor-content" placeholder="## 教程标题&#10;&#10;图文教程内容...&#10;&#10;- 步骤1&#10;- 步骤2&#10;&#10;\`\`\`python&#10;print('hello')&#10;\`\`\`" style="min-height:260px;font-family:'JetBrains Mono',Consolas,monospace;font-size:0.9rem"></textarea>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="btn btn--outline btn--sm" onclick="window.__admin.previewSkillContent()" style="font-size:0.8rem">预览</button>
+          <span style="font-size:0.75rem;color:var(--text-tertiary);align-self:center">留空则详情页显示描述文字</span>
+        </div>
+      </div>
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:24px">
         <button class="btn btn--outline btn--sm" onclick="window.__admin.closeModal()">取消</button>
         <button class="btn btn--primary btn--sm" onclick="window.__admin.saveSkill('${id || ""}')">保存</button>
       </div>
     `);
     initTagsInput("skills");
+
+    /* 编辑已有技能时异步加载正文 */
+    if (id) loadSkillContent(id);
+  }
+
+  /* 异步加载技能正文 */
+  async function loadSkillContent(id) {
+    var textarea = document.getElementById("f_content");
+    if (!textarea) return;
+    textarea.placeholder = "正在加载教程正文...";
+    try {
+      var response = await fetch("/api/article?type=skill&id=" + encodeURIComponent(id));
+      if (response.ok) {
+        var data = await response.json();
+        if (data.content) {
+          textarea.value = data.content;
+        }
+      }
+    } catch (e) {
+      textarea.placeholder = "正文加载失败，可重新输入";
+    }
+  }
+
+  /* 预览技能正文 */
+  function previewSkillContent() {
+    var textarea = document.getElementById("f_content");
+    if (!textarea) return;
+    var content = textarea.value;
+    if (!content.trim()) { toast("正文为空", "info"); return; }
+
+    var previewHTML;
+    if (typeof marked !== "undefined") {
+      marked.setOptions({ breaks: true, gfm: true });
+      previewHTML = marked.parse(content);
+    } else {
+      previewHTML = "<pre>" + escapeHtml(content) + "</pre>";
+    }
+
+    openModal("教程正文预览", '<div class="article-preview">' + previewHTML + '</div><div style="display:flex;justify-content:flex-end;margin-top:16px"><button class="btn btn--primary btn--sm" onclick="window.__admin.backToEdit()">返回编辑</button></div>');
   }
 
   async function saveSkill(id) {
@@ -568,6 +619,7 @@
       path: val("f_path"),
       duration: val("f_duration"),
       tags: getTags("skills"),
+      content: val("f_content"),
     };
     if (!data.title) { toast("请输入标题", "error"); return; }
     try {
@@ -645,8 +697,15 @@
         </div>
       </div>
       <div class="form-group">
-        <label>视频地址 (URL)</label>
+        <label>视频地址 (URL) <span style="font-size:0.8rem;color:var(--text-tertiary)">mp4 直链</span></label>
         <input type="url" id="f_src" value="${v ? escapeHtml(v.src) : ""}" placeholder="https://...mp4">
+      </div>
+      <div class="form-group">
+        <label>嵌入播放地址 <span style="font-size:0.8rem;color:var(--text-tertiary)">B站等外站视频，优先于 mp4</span></label>
+        <input type="url" id="f_embed" value="${v ? escapeHtml(v.embed || "") : ""}" placeholder="https://player.bilibili.com/player.html?bvid=BVxxxx">
+        <div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:4px">
+          获取方法：B站视频 → 分享 → 嵌入代码 → 复制 iframe 里的 src 地址（以 player.bilibili.com 开头）
+        </div>
       </div>
       <div class="form-group">
         <label>封面图 URL</label>
@@ -671,6 +730,7 @@
       duration: val("f_duration"),
       views: val("f_views") || "0",
       src: val("f_src"),
+      embed: val("f_embed"),
       poster: val("f_poster"),
       isMain: document.getElementById("f_isMain").checked,
     };
@@ -924,6 +984,12 @@
     var config = contentData.site_config || {};
     var stats = config.stats || [];
     var paths = config.paths || [];
+    var charts = config.charts || {};
+    var cTrend = charts.trend || {};
+    var cRadar = charts.radar || {};
+    var cDoughnut = charts.doughnut || {};
+    var cBar = charts.bar || {};
+    var cBarSets = (cBar.sets && cBar.sets.length >= 2) ? cBar.sets : [{ label: "", data: [] }, { label: "", data: [] }];
 
     adminMain.innerHTML = `
       <div class="section-admin-header">
@@ -972,6 +1038,67 @@
         <button class="btn btn--outline btn--sm" style="margin-top:12px" onclick="window.__admin.addPathRow()">+ 添加路径</button>
       </div>
 
+      <div class="config-section">
+        <h3>数据洞察图表</h3>
+        <p style="font-size:0.8rem;color:var(--text-tertiary);margin:0 0 16px">标签与数值均用逗号分隔；数值支持小数。修改后前台图表即时更新。</p>
+
+        <div class="config-section">
+          <h4>📈 折线图（趋势）</h4>
+          <div class="form-group"><label>标题</label>
+            <input type="text" id="chart_trend_title" value="${escapeHtml(cTrend.title || "")}" placeholder="如 AI 模型参数量演进趋势"></div>
+          <div class="form-row">
+            <div class="form-group"><label>X 轴标签（逗号分隔）</label>
+              <input type="text" id="chart_trend_labels" value="${escapeHtml((cTrend.labels || []).join(", "))}"></div>
+            <div class="form-group"><label>数值（逗号分隔）</label>
+              <input type="text" id="chart_trend_data" value="${(cTrend.data || []).join(", ")}"></div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h4>🕸 雷达图（方向热度）</h4>
+          <div class="form-group"><label>标题</label>
+            <input type="text" id="chart_radar_title" value="${escapeHtml(cRadar.title || "")}" placeholder="如 热门 AI 技术方向"></div>
+          <div class="form-row">
+            <div class="form-group"><label>维度标签（逗号分隔）</label>
+              <input type="text" id="chart_radar_labels" value="${escapeHtml((cRadar.labels || []).join(", "))}"></div>
+            <div class="form-group"><label>热度数值 0-100（逗号分隔）</label>
+              <input type="text" id="chart_radar_data" value="${(cRadar.data || []).join(", ")}"></div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h4>🍩 环形图（占比分布）</h4>
+          <div class="form-group"><label>标题</label>
+            <input type="text" id="chart_doughnut_title" value="${escapeHtml(cDoughnut.title || "")}" placeholder="如 社区学习偏好分布"></div>
+          <div class="form-row">
+            <div class="form-group"><label>分类标签（逗号分隔）</label>
+              <input type="text" id="chart_doughnut_labels" value="${escapeHtml((cDoughnut.labels || []).join(", "))}"></div>
+            <div class="form-group"><label>占比数值（逗号分隔）</label>
+              <input type="text" id="chart_doughnut_data" value="${(cDoughnut.data || []).join(", ")}"></div>
+          </div>
+        </div>
+
+        <div class="config-section">
+          <h4>📊 柱状图（双系列对比）</h4>
+          <div class="form-group"><label>标题</label>
+            <input type="text" id="chart_bar_title" value="${escapeHtml(cBar.title || "")}" placeholder="如 月度技术文章发布量 vs 阅读量"></div>
+          <div class="form-group"><label>X 轴标签（逗号分隔）</label>
+            <input type="text" id="chart_bar_labels" value="${escapeHtml((cBar.labels || []).join(", "))}"></div>
+          <div class="form-row">
+            <div class="form-group"><label>系列 1 名称</label>
+              <input type="text" id="chart_bar_set1_label" value="${escapeHtml(cBarSets[0].label || "")}" placeholder="如 文章数"></div>
+            <div class="form-group"><label>系列 1 数值（逗号分隔）</label>
+              <input type="text" id="chart_bar_set1_data" value="${(cBarSets[0].data || []).join(", ")}"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>系列 2 名称</label>
+              <input type="text" id="chart_bar_set2_label" value="${escapeHtml(cBarSets[1].label || "")}" placeholder="如 阅读量 (千)"></div>
+            <div class="form-group"><label>系列 2 数值（逗号分隔）</label>
+              <input type="text" id="chart_bar_set2_data" value="${(cBarSets[1].data || []).join(", ")}"></div>
+          </div>
+        </div>
+      </div>
+
       <div style="display:flex;justify-content:flex-end;margin-top:16px">
         <button class="btn btn--primary" onclick="window.__admin.saveConfig()">保存配置</button>
       </div>
@@ -996,6 +1123,15 @@
     container.appendChild(div);
   }
 
+  /* 图表输入解析：逗号分隔（兼容中文逗号） */
+  function parseList(str) {
+    return String(str || "").split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function parseNums(str) {
+    return parseList(str).map(Number);
+  }
+
   async function saveConfig() {
     var stats = [];
     document.querySelectorAll("#configStats .config-stat-row").forEach(function (row) {
@@ -1012,11 +1148,39 @@
       if (text) paths.push({ id: text.toLowerCase().replace(/\s/g, "-"), icon: icon, text: text, count: count });
     });
 
+    /* 图表配置 */
+    var charts = {
+      trend: {
+        title: val("chart_trend_title"),
+        labels: parseList(val("chart_trend_labels")),
+        data: parseNums(val("chart_trend_data")),
+      },
+      radar: {
+        title: val("chart_radar_title"),
+        labels: parseList(val("chart_radar_labels")),
+        data: parseNums(val("chart_radar_data")),
+      },
+      doughnut: {
+        title: val("chart_doughnut_title"),
+        labels: parseList(val("chart_doughnut_labels")),
+        data: parseNums(val("chart_doughnut_data")),
+      },
+      bar: {
+        title: val("chart_bar_title"),
+        labels: parseList(val("chart_bar_labels")),
+        sets: [
+          { label: val("chart_bar_set1_label"), data: parseNums(val("chart_bar_set1_data")) },
+          { label: val("chart_bar_set2_label"), data: parseNums(val("chart_bar_set2_data")) },
+        ],
+      },
+    };
+
     var data = {
       stats: stats,
       heroBadge: val("config_heroBadge"),
       learningTip: val("config_learningTip"),
       paths: paths,
+      charts: charts,
     };
 
     try {
@@ -1068,6 +1232,7 @@
     editSkill: editSkill,
     saveSkill: saveSkill,
     deleteSkill: deleteSkill,
+    previewSkillContent: previewSkillContent,
     editVideo: editVideo,
     saveVideo: saveVideo,
     deleteVideo: deleteVideo,

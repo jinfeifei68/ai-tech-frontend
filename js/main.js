@@ -189,32 +189,114 @@
     });
   });
 
-  /* ===== 视频播放列表 ===== */
-  var mainVideo = document.querySelector("#mainPlayer video");
-  var mainPoster = document.querySelector("#mainPlayer video");
+  /* ===== 视频播放列表（支持 mp4 直链与 B站等嵌入链接） ===== */
+  var mainPlayerBox = document.querySelector("#mainPlayer");
+  var mainVideo = mainPlayerBox ? mainPlayerBox.querySelector("video") : null;
   var mainTitle = document.querySelector(".video-main__overlay h3");
   var videoItems = document.querySelectorAll(".video-item");
+  var embedFrame = null;
 
-  videoItems.forEach(function (item) {
-    item.addEventListener("click", function () {
-      var src = item.getAttribute("data-src");
-      var poster = item.getAttribute("data-poster");
-      var title = item.querySelector("h4").textContent;
+  /* 确保嵌入 iframe 容器存在 */
+  function ensureEmbedFrame() {
+    if (!mainPlayerBox) return null;
+    if (!embedFrame) {
+      embedFrame = document.createElement("iframe");
+      embedFrame.className = "video-main__embed";
+      embedFrame.setAttribute("allowfullscreen", "true");
+      embedFrame.setAttribute("allow", "autoplay; fullscreen; encrypted-media; picture-in-picture");
+      embedFrame.setAttribute("frameborder", "0");
+      embedFrame.setAttribute("referrerpolicy", "no-referrer-when-downgrade");
+      embedFrame.style.display = "none";
+      mainPlayerBox.insertBefore(embedFrame, mainPlayerBox.firstChild);
+    }
+    return embedFrame;
+  }
 
-      mainVideo.src = src;
-      mainVideo.poster = poster;
-      mainTitle.textContent = title;
-      mainVideo.load();
-      mainVideo.play().catch(function () {});
+  /* 统一播放入口：item = { src, poster, embed, title, duration, date, views } */
+  function playMainVideo(item) {
+    if (!item) return;
+    var frame = ensureEmbedFrame();
 
-      // 滚动到播放器
-      mainVideo.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (item.embed) {
+      /* 嵌入模式（B站/腾讯视频等） */
+      if (mainVideo) {
+        try { mainVideo.pause(); } catch (e) {}
+        mainVideo.removeAttribute("src");
+        mainVideo.style.display = "none";
+      }
+      if (frame) {
+        var src = item.embed;
+        /* 自动播放参数 */
+        if (/autoplay=0/.test(src)) {
+          src = src.replace(/autoplay=0/, "autoplay=1");
+        } else if (/[?&]autoplay=/.test(src) === false && src.indexOf("?") !== -1) {
+          src += "&autoplay=1";
+        }
+        frame.src = src;
+        frame.style.display = "";
+      }
+    } else {
+      /* mp4 直链模式 */
+      if (frame) {
+        frame.src = "";
+        frame.style.display = "none";
+      }
+      if (mainVideo) {
+        mainVideo.style.display = "";
+        mainVideo.src = item.src || "";
+        mainVideo.poster = item.poster || "";
+        mainVideo.load();
+        mainVideo.play().catch(function () {});
+      }
+    }
+
+    /* 更新覆盖层信息 */
+    if (mainTitle && item.title) mainTitle.textContent = item.title;
+    var meta = document.querySelector(".video-main__meta");
+    if (meta) {
+      meta.innerHTML = "<span>▶ " + esc(item.duration || "") + "</span>" +
+        (item.date ? "<span>📅 " + esc(item.date) + "</span>" : "") +
+        "<span>👁 " + esc(item.views || "0") + " 观看</span>";
+    }
+  }
+
+  /* 点击列表项切换主播放器 */
+  function bindVideoItems() {
+    videoItems = document.querySelectorAll(".video-item");
+    videoItems.forEach(function (item) {
+      item.addEventListener("click", function () {
+        playMainVideo({
+          src: item.getAttribute("data-src"),
+          poster: item.getAttribute("data-poster"),
+          embed: item.getAttribute("data-embed") || "",
+          title: item.querySelector("h4") ? item.querySelector("h4").textContent : "",
+        });
+        if (mainVideo || embedFrame) {
+          var target = embedFrame && embedFrame.style.display !== "none" ? embedFrame : mainVideo;
+          if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
     });
-  });
+  }
+
+  bindVideoItems();
 
   /* ===== Chart.js 数据可视化 ===== */
   var chartsReady = false;
   var charts = {};
+  /* 后台配置的图表数据（来自 site_config.charts），为空时用默认数据 */
+  var siteCharts = null;
+
+  /* 更新图表卡片标题 */
+  function applyChartTitle(canvasId, title) {
+    if (!title) return;
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    var head = canvas.closest(".chart-card");
+    if (!head) return;
+    var h3 = head.querySelector("h3");
+    if (h3) h3.textContent = title;
+  }
 
   // 获取当前主题颜色
   function getThemeColors() {
@@ -236,6 +318,8 @@
     // 1. 折线图 — 模型参数量趋势
     var ctxTrend = document.getElementById("chartTrend");
     if (ctxTrend) {
+      var cfgTrend = (siteCharts && siteCharts.trend) || {};
+      applyChartTitle("chartTrend", cfgTrend.title);
       var gradient = ctxTrend.getContext("2d").createLinearGradient(0, 0, 0, 300);
       gradient.addColorStop(0, "rgba(0, 212, 255, 0.3)");
       gradient.addColorStop(1, "rgba(0, 212, 255, 0)");
@@ -243,11 +327,11 @@
       charts.trend = new Chart(ctxTrend, {
         type: "line",
         data: {
-          labels: ["2020", "2021", "2022", "2023", "2024", "2025", "2026"],
+          labels: cfgTrend.labels || ["2020", "2021", "2022", "2023", "2024", "2025", "2026"],
           datasets: [
             {
               label: "最大参数量 (B)",
-              data: [175, 280, 540, 1760, 2400, 3600, 5200],
+              data: cfgTrend.data || [175, 280, 540, 1760, 2400, 3600, 5200],
               borderColor: "#00d4ff",
               backgroundColor: gradient,
               borderWidth: 3,
@@ -268,14 +352,16 @@
     // 2. 雷达图 — 热门技术方向
     var ctxRadar = document.getElementById("chartRadar");
     if (ctxRadar) {
+      var cfgRadar = (siteCharts && siteCharts.radar) || {};
+      applyChartTitle("chartRadar", cfgRadar.title);
       charts.radar = new Chart(ctxRadar, {
         type: "radar",
         data: {
-          labels: ["大模型", "RAG/Agent", "计算机视觉", "语音处理", "多模态", "AI安全"],
+          labels: cfgRadar.labels || ["大模型", "RAG/Agent", "计算机视觉", "语音处理", "多模态", "AI安全"],
           datasets: [
             {
               label: "热度指数",
-              data: [95, 88, 72, 65, 82, 58],
+              data: cfgRadar.data || [95, 88, 72, 65, 82, 58],
               borderColor: "#7c4dff",
               backgroundColor: "rgba(124, 77, 255, 0.15)",
               borderWidth: 2,
@@ -292,13 +378,15 @@
     // 3. 环形图 — 学习偏好
     var ctxDoughnut = document.getElementById("chartDoughnut");
     if (ctxDoughnut) {
+      var cfgDoughnut = (siteCharts && siteCharts.doughnut) || {};
+      applyChartTitle("chartDoughnut", cfgDoughnut.title);
       charts.doughnut = new Chart(ctxDoughnut, {
         type: "doughnut",
         data: {
-          labels: ["大模型微调", "RAG 系统", "计算机视觉", "数据分析", "AI Agent"],
+          labels: cfgDoughnut.labels || ["大模型微调", "RAG 系统", "计算机视觉", "数据分析", "AI Agent"],
           datasets: [
             {
-              data: [32, 24, 18, 15, 11],
+              data: cfgDoughnut.data || [32, 24, 18, 15, 11],
               backgroundColor: [
                 "#00d4ff",
                 "#7c4dff",
@@ -318,21 +406,27 @@
     // 4. 柱状图 — 文章 vs 阅读
     var ctxBar = document.getElementById("chartBar");
     if (ctxBar) {
+      var cfgBar = (siteCharts && siteCharts.bar) || {};
+      applyChartTitle("chartBar", cfgBar.title);
+      var barSets = cfgBar.sets && cfgBar.sets.length >= 2 ? cfgBar.sets : [
+        { label: "文章数", data: [45, 62, 78, 85, 102, 96] },
+        { label: "阅读量 (千)", data: [120, 185, 240, 310, 380, 350] },
+      ];
       charts.bar = new Chart(ctxBar, {
         type: "bar",
         data: {
-          labels: ["3月", "4月", "5月", "6月", "7月", "8月"],
+          labels: cfgBar.labels || ["3月", "4月", "5月", "6月", "7月", "8月"],
           datasets: [
             {
-              label: "文章数",
-              data: [45, 62, 78, 85, 102, 96],
+              label: barSets[0].label,
+              data: barSets[0].data,
               backgroundColor: "rgba(0, 212, 255, 0.7)",
               borderRadius: 6,
               barPercentage: 0.6
             },
             {
-              label: "阅读量 (千)",
-              data: [120, 185, 240, 310, 380, 350],
+              label: barSets[1].label,
+              data: barSets[1].data,
               backgroundColor: "rgba(124, 77, 255, 0.7)",
               borderRadius: 6,
               barPercentage: 0.6
@@ -497,18 +591,19 @@
     if (grid) grid.innerHTML = html;
   }
 
-  /* --- 渲染：技能卡片 --- */
+  /* --- 渲染：技能卡片（可点击进入教程详情页） --- */
   function renderSkillCards(items) {
     var html = items.map(function (s) {
       var tags = (s.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join("");
-      return '<div class="skill-card reveal reveal--visible" data-path="' + esc(s.path) + '">' +
+      var link = "article.html?type=skill&id=" + encodeURIComponent(s.id);
+      return '<div class="skill-card skill-card--clickable reveal reveal--visible" data-path="' + esc(s.path) + '" data-id="' + esc(s.id) + '" data-link="' + link + '">' +
         '<div class="skill-card__top"><span class="skill-card__icon">' + esc(s.icon) + '</span>' +
         '<span class="skill-card__level">' + esc(s.level) + '</span></div>' +
         '<h3 class="skill-card__title">' + esc(s.title) + '</h3>' +
         '<p class="skill-card__desc">' + esc(s.desc) + '</p>' +
         '<div class="skill-card__tags">' + tags + '</div>' +
         '<div class="skill-card__footer"><span class="skill-card__duration">' + esc(s.duration) + '</span>' +
-        '<a href="#" class="skill-card__link">开始学习 →</a></div></div>';
+        '<a href="' + link + '" class="skill-card__link">查看教程 →</a></div></div>';
     }).join("");
     var content = document.querySelector(".skills__content");
     if (content) content.innerHTML = html;
@@ -531,21 +626,18 @@
     var main = items.find(function (v) { return v.isMain; }) || items[0];
     var list = items.filter(function (v) { return !v.isMain; });
     if (main) {
-      var player = document.querySelector("#mainPlayer");
-      if (player) {
-        var video = player.querySelector("video");
-        var overlay = player.querySelector(".video-main__overlay h3");
-        var meta = player.querySelector(".video-main__meta");
-        if (video) {
-          video.src = main.src;
-          video.poster = main.poster;
-        }
-        if (overlay) overlay.textContent = main.title;
-        if (meta) meta.innerHTML = "<span>▶ " + esc(main.duration) + "</span><span>📅 " + esc(main.date) + "</span><span>👁 " + esc(main.views) + " 观看</span>";
-      }
+      playMainVideo({
+        src: main.src,
+        poster: main.poster,
+        embed: main.embed || "",
+        title: main.title,
+        duration: main.duration,
+        date: main.date,
+        views: main.views,
+      });
     }
     var listHTML = list.map(function (v) {
-      return '<div class="video-item" data-src="' + esc(v.src) + '" data-poster="' + esc(v.poster) + '">' +
+      return '<div class="video-item" data-src="' + esc(v.src || "") + '" data-poster="' + esc(v.poster || "") + '" data-embed="' + esc(v.embed || "") + '">' +
         '<div class="video-item__thumb" style="--img-url: url(\'' + esc(v.poster) + '\')">' +
         '<span class="video-item__duration">' + esc(v.duration) + '</span>' +
         '<span class="video-item__play">▶</span></div>' +
@@ -652,21 +744,20 @@
       });
     });
 
-    /* 视频播放列表 */
-    videoItems = document.querySelectorAll(".video-item");
-    videoItems.forEach(function (item) {
-      item.addEventListener("click", function () {
-        var src = item.getAttribute("data-src");
-        var poster = item.getAttribute("data-poster");
-        var title = item.querySelector("h4").textContent;
-        mainVideo.src = src;
-        mainVideo.poster = poster;
-        mainTitle.textContent = title;
-        mainVideo.load();
-        mainVideo.play().catch(function () {});
-        mainVideo.scrollIntoView({ behavior: "smooth", block: "center" });
+    /* 技能卡片点击 → 教程详情页 */
+    skillCards = document.querySelectorAll(".skill-card");
+    skillCards.forEach(function (card) {
+      var link = card.getAttribute("data-link");
+      if (!link) return;
+      card.addEventListener("click", function (e) {
+        /* 点击「查看教程」链接本身时让浏览器原生跳转（支持新标签打开） */
+        if (e.target.closest && e.target.closest("a")) return;
+        window.location.href = link;
       });
     });
+
+    /* 视频播放列表 */
+    bindVideoItems();
 
     /* 数字滚动 */
     document.querySelectorAll("[data-count]").forEach(function (el) {
@@ -706,6 +797,12 @@
       if (data.site_config && data.site_config.learningTip) {
         var tip = document.querySelector(".skills__tip p");
         if (tip) tip.textContent = data.site_config.learningTip;
+      }
+
+      /* 应用后台图表配置（若图表已初始化则重绘） */
+      if (data.site_config && data.site_config.charts) {
+        siteCharts = data.site_config.charts;
+        if (chartsReady) updateChartColors();
       }
     } catch (e) {
       /* 本地开发或 API 未部署，保留静态内容 */
