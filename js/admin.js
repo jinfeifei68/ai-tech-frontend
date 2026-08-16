@@ -1193,6 +1193,37 @@
       </div>
 
       <div class="config-section">
+        <h3>底部社交媒体链接</h3>
+        <p style="font-size:0.8rem;color:var(--text-tertiary);margin:0 0 16px">添加、编辑或删除底部社交媒体按钮，支持任意数量。选择「自定义」可填写 emoji 图标和任意链接。</p>
+        <div class="config-social" id="configSocial">
+          ${(config.socialLinks || []).map(function (s, i) {
+            return `<div class="config-social-row">
+              <select class="config-social-type" data-idx="${i}">
+                <option value="github"${s.type === "github" ? " selected" : ""}>GitHub</option>
+                <option value="wechat"${s.type === "wechat" ? " selected" : ""}>微信</option>
+                <option value="zhihu"${s.type === "zhihu" ? " selected" : ""}>知乎</option>
+                <option value="twitter"${s.type === "twitter" ? " selected" : ""}>Twitter / X</option>
+                <option value="bilibili"${s.type === "bilibili" ? " selected" : ""}>哔哩哔哩</option>
+                <option value="youtube"${s.type === "youtube" ? " selected" : ""}>YouTube</option>
+                <option value="weibo"${s.type === "weibo" ? " selected" : ""}>微博</option>
+                <option value="douyin"${s.type === "douyin" ? " selected" : ""}>抖音</option>
+                <option value="qq"${s.type === "qq" ? " selected" : ""}>QQ</option>
+                <option value="telegram"${s.type === "telegram" ? " selected" : ""}>Telegram</option>
+                <option value="linkedin"${s.type === "linkedin" ? " selected" : ""}>LinkedIn</option>
+                <option value="email"${s.type === "email" ? " selected" : ""}>邮箱</option>
+                <option value="custom"${s.type === "custom" || !s.type ? " selected" : ""}>自定义</option>
+              </select>
+              <input type="text" class="config-social-label" data-idx="${i}" value="${escapeHtml(s.label || "")}" placeholder="显示名称">
+              <input type="text" class="config-social-url" data-idx="${i}" value="${escapeHtml(s.url || "")}" placeholder="链接地址（如 https://github.com/...）">
+              <input type="text" class="config-social-icon" data-idx="${i}" value="${escapeHtml(s.icon || "")}" placeholder="emoji图标" style="text-align:center" title="仅「自定义」类型有效">
+              <button class="icon-btn icon-btn--danger" onclick="this.parentElement.remove()" title="删除">🗑</button>
+            </div>`;
+          }).join("")}
+        </div>
+        <button class="btn btn--outline btn--sm" style="margin-top:12px" onclick="window.__admin.addSocialRow()">+ 添加社交链接</button>
+      </div>
+
+      <div class="config-section">
         <h3>各专区描述文字</h3>
         <p style="font-size:0.8rem;color:var(--text-tertiary);margin:0 0 16px">修改首页各板块标题下方的描述文字，保存后前台立即生效。</p>
         <div class="form-group">
@@ -1343,6 +1374,34 @@
     container.appendChild(div);
   }
 
+  function addSocialRow() {
+    var container = document.getElementById("configSocial");
+    var idx = container.children.length;
+    var div = document.createElement("div");
+    div.className = "config-social-row";
+    div.innerHTML =
+      '<select class="config-social-type" data-idx="' + idx + '">' +
+      '<option value="github">GitHub</option>' +
+      '<option value="wechat">微信</option>' +
+      '<option value="zhihu">知乎</option>' +
+      '<option value="twitter">Twitter / X</option>' +
+      '<option value="bilibili">哔哩哔哩</option>' +
+      '<option value="youtube">YouTube</option>' +
+      '<option value="weibo">微博</option>' +
+      '<option value="douyin">抖音</option>' +
+      '<option value="qq">QQ</option>' +
+      '<option value="telegram">Telegram</option>' +
+      '<option value="linkedin">LinkedIn</option>' +
+      '<option value="email">邮箱</option>' +
+      '<option value="custom" selected>自定义</option>' +
+      '</select>' +
+      '<input type="text" class="config-social-label" data-idx="' + idx + '" value="" placeholder="显示名称">' +
+      '<input type="text" class="config-social-url" data-idx="' + idx + '" value="" placeholder="链接地址（如 https://github.com/...）">' +
+      '<input type="text" class="config-social-icon" data-idx="' + idx + '" value="" placeholder="emoji图标" style="text-align:center" title="仅「自定义」类型有效">' +
+      '<button class="icon-btn icon-btn--danger" onclick="this.parentElement.remove()">🗑</button>';
+    container.appendChild(div);
+  }
+
   /* 图表输入解析：逗号分隔（兼容中文逗号） */
   function parseList(str) {
     return String(str || "").split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
@@ -1395,6 +1454,18 @@
       },
     };
 
+    /* 社交媒体链接 */
+    var socialLinks = [];
+    document.querySelectorAll("#configSocial .config-social-row").forEach(function (row) {
+      var type = row.querySelector(".config-social-type").value;
+      var label = row.querySelector(".config-social-label").value.trim();
+      var url = row.querySelector(".config-social-url").value.trim();
+      var icon = row.querySelector(".config-social-icon").value.trim();
+      if (label || url) {
+        socialLinks.push({ type: type, label: label, url: url, icon: icon });
+      }
+    });
+
     var data = {
       siteName: val("config_siteName"),
       logoUrl: val("config_logoUrl"),
@@ -1415,6 +1486,7 @@
       learningTip: val("config_learningTip"),
       paths: paths,
       charts: charts,
+      socialLinks: socialLinks,
     };
 
     try {
@@ -1485,6 +1557,7 @@
     saveConfig: saveConfig,
     addStatRow: addStatRow,
     addPathRow: addPathRow,
+    addSocialRow: addSocialRow,
     closeModal: closeModal,
     initData: initData,
   };
