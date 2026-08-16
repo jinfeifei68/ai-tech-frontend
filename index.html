@@ -5,14 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="AI科技要闻 · 技能知识分享 · 共同学习交流 — 聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区">
   <meta name="keywords" content="AI,人工智能,科技要闻,技能分享,知识社区,机器学习,深度学习">
+  <meta name="author" content="AI 科技前沿">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0b1020">
+  <link rel="canonical" href="https://ai.feige68.dpdns.org/">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+  <!-- Open Graph / 社交分享卡片 -->
+  <meta property="og:site_name" content="AI 科技前沿">
   <meta property="og:title" content="AI科技前沿 | 要闻 · 分享 · 交流">
   <meta property="og:description" content="聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区">
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ai.feige68.dpdns.org/">
+  <meta property="og:image" content="https://ai.feige68.dpdns.org/assets/og-cover.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="zh_CN">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AI科技前沿 | 要闻 · 分享 · 交流">
+  <meta name="twitter:description" content="聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区">
+  <meta name="twitter:image" content="https://ai.feige68.dpdns.org/assets/og-cover.png">
+
   <title>AI科技前沿 | 要闻 · 分享 · 交流</title>
+
+  <!-- JSON-LD 结构化数据 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "AI 科技前沿",
+    "alternateName": "AI科技前沿",
+    "url": "https://ai.feige68.dpdns.org/",
+    "description": "聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区",
+    "inLanguage": "zh-CN"
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260816f">
+  <link rel="stylesheet" href="css/style.css?v=20260816g">
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 </head>
@@ -140,7 +173,7 @@
       <div class="news__grid">
         <!-- 特色要闻 -->
         <article class="news-card news-card--featured reveal" data-category="model">
-          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-model/800/450')">
+          <div class="news-card__img lazy-img" data-bg="https://picsum.photos/seed/ai-model/800/450">
             <span class="news-card__badge news-card__badge--hot">热门</span>
           </div>
           <div class="news-card__body">
@@ -155,7 +188,7 @@
         </article>
 
         <article class="news-card reveal" data-category="application">
-          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-app/600/400')">
+          <div class="news-card__img lazy-img" data-bg="https://picsum.photos/seed/ai-app/600/400">
             <span class="news-card__badge">应用</span>
           </div>
           <div class="news-card__body">
@@ -170,7 +203,7 @@
         </article>
 
         <article class="news-card reveal" data-category="research">
-          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-research/600/400')">
+          <div class="news-card__img lazy-img" data-bg="https://picsum.photos/seed/ai-research/600/400">
             <span class="news-card__badge news-card__badge--new">新</span>
           </div>
           <div class="news-card__body">
@@ -185,7 +218,7 @@
         </article>
 
         <article class="news-card reveal" data-category="industry">
-          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-industry/600/400')">
+          <div class="news-card__img lazy-img" data-bg="https://picsum.photos/seed/ai-industry/600/400">
             <span class="news-card__badge">产业</span>
           </div>
           <div class="news-card__body">
@@ -200,7 +233,7 @@
         </article>
 
         <article class="news-card reveal" data-category="model">
-          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-agi/600/400')">
+          <div class="news-card__img lazy-img" data-bg="https://picsum.photos/seed/ai-agi/600/400">
             <span class="news-card__badge">大模型</span>
           </div>
           <div class="news-card__body">
@@ -215,7 +248,7 @@
         </article>
 
         <article class="news-card reveal" data-category="application">
-          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-medical/600/400')">
+          <div class="news-card__img lazy-img" data-bg="https://picsum.photos/seed/ai-medical/600/400">
             <span class="news-card__badge">应用</span>
           </div>
           <div class="news-card__body">
@@ -722,6 +755,6 @@
     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </button>
 
-  <script src="js/main.js?v=20260816f"></script>
+  <script src="js/main.js?v=20260816g"></script>
 </body>
 </html>
