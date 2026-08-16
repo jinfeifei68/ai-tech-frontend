@@ -11,11 +11,24 @@
  *   PUT  /api/content       — 更新内容（需认证）
  *   DELETE /api/content     — 删除内容（需认证）
  *   POST /api/init          — 初始化种子数据（需认证）
+ *   POST /api/community/join      — 加入社区（公开，写 members）
+ *   POST /api/community/like      — 讨论点赞（公开，IP 去重）
+ *   POST /api/community/comment   — 提交评论（公开，进待审）
+ *   GET  /api/community/comments  — 已审核评论（公开）
+ *   GET  /api/community/admin     — 社区管理数据（需认证：members/pending/comments）
+ *   POST /api/community/approve   — 审核通过评论（需认证）
+ *   DELETE /api/community/member  — 删除成员（需认证）
+ *   DELETE /api/community/comment — 删除评论（需认证）
  * 
  * KV 数据结构：
  *   articles          — 文章元数据数组（不含正文）
  *   article:<id>      — 单篇文章正文（Markdown 字符串）
  *   skills/videos/discussions/contributors/site_config — 其他内容
+ *   members           — 社区注册成员 [{id, nickname, email, date}]
+ *   pending_comments  — 待审核评论 [{id, discussionId, nickname, content, date}]
+ *   comments          — 已审核评论（同上结构，前台公开）
+ *   liked:<id>        — 讨论点赞 IP 去重 {ips: []}
+ *   comment_guard:<ip>— 评论频率限制（120 秒过期）
  */
 
 /* ===== CORS ===== */
@@ -365,10 +378,39 @@ const SEED = {
       },
     },
   },
+  /* 社区数据初始为空，由访客互动产生 */
+  members: [],
+  pending_comments: [],
+  comments: [],
 };
 
 /* ===== 数组型内容类型 ===== */
+/* 注意：members / pending_comments / comments 不在此列，
+   它们通过 /api/community/* 专用接口读写，避免隐私数据泄露到公开的 type=all */
 const ARRAY_TYPES = ["articles", "skills", "videos", "discussions", "contributors"];
+
+/* ===== 社区工具函数 ===== */
+function isValidName(name) {
+  name = (name || "").trim();
+  return name.length >= 2 && name.length <= 20;
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((email || "").trim());
+}
+
+function clientIP(request) {
+  return (
+    request.headers.get("CF-Connecting-IP") ||
+    (request.headers.get("X-Forwarded-For") || "").split(",")[0].trim() ||
+    "unknown"
+  );
+}
+
+function nowString() {
+  const d = new Date();
+  return d.toISOString().slice(0, 10) + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + ":" + String(d.getSeconds()).padStart(2, "0");
+}
 
 /* ===== 阅读量递增 ===== */
 function incrementReads(reads) {
@@ -518,6 +560,109 @@ export async function onRequest(context) {
     return json({ ...article, content: content });
   }
 
+  /* ===== 社区互动（公开，无需登录） ===== */
+
+  /* POST /api/community/join — 加入社区 */
+  if (path === "community/join" && method === "POST") {
+    let body;
+    try { body = await request.json(); } catch { return json({ error: "请求格式错误" }, 400); }
+
+    const nickname = (body.nickname || "").trim();
+    const email = (body.email || "").trim();
+    if (!isValidName(nickname)) return json({ error: "昵称需为 2-20 个字符" }, 400);
+    if (!isValidEmail(email)) return json({ error: "邮箱格式不正确" }, 400);
+
+    const members = await kvGetJSON(env, "members", []);
+    /* 同邮箱 60 秒内重复注册拦截 */
+    const recent = members.find(function (m) {
+      return m.email === email && Date.now() - (m._ts || 0) < 60000;
+    });
+    if (recent) return json({ error: "该邮箱刚注册过，请稍后再试" }, 429);
+
+    const newMember = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      nickname: nickname,
+      email: email,
+      date: nowString(),
+      _ts: Date.now(),
+    };
+    members.unshift(newMember);
+    await env.CONTENT_KV.put("members", JSON.stringify(members));
+
+    /* 移除内部时间戳再返回 */
+    const { _ts, ...safe } = newMember;
+    return json({ success: true, message: "加入成功，欢迎！", data: safe });
+  }
+
+  /* POST /api/community/like — 讨论点赞（IP 去重） */
+  if (path === "community/like" && method === "POST") {
+    let body;
+    try { body = await request.json(); } catch { return json({ error: "请求格式错误" }, 400); }
+    const id = (body.id || "").trim();
+    if (!id) return json({ error: "缺少 id" }, 400);
+
+    const discussions = await kvGetJSON(env, "discussions", []);
+    const d = discussions.find(function (x) { return x.id === id; });
+    if (!d) return json({ error: "讨论不存在" }, 404);
+
+    const ip = clientIP(request);
+    const liked = await kvGetJSON(env, "liked:" + id, { ips: [] });
+    if ((liked.ips || []).includes(ip)) {
+      return json({ success: true, likes: d.likes, already: true });
+    }
+    liked.ips.push(ip);
+    /* 限制单 key 大小，只保留最近 500 个 IP */
+    if (liked.ips.length > 500) liked.ips = liked.ips.slice(-500);
+    await env.CONTENT_KV.put("liked:" + id, JSON.stringify(liked));
+
+    d.likes = (parseInt(d.likes, 10) || 0) + 1;
+    await env.CONTENT_KV.put("discussions", JSON.stringify(discussions));
+    return json({ success: true, likes: d.likes });
+  }
+
+  /* POST /api/community/comment — 提交评论（进入待审核） */
+  if (path === "community/comment" && method === "POST") {
+    let body;
+    try { body = await request.json(); } catch { return json({ error: "请求格式错误" }, 400); }
+
+    const discussionId = (body.discussionId || "").trim();
+    const nickname = (body.nickname || "").trim();
+    const content = (body.content || "").trim();
+    if (!isValidName(nickname)) return json({ error: "昵称需为 2-20 个字符" }, 400);
+    if (content.length < 5 || content.length > 500) return json({ error: "评论内容需为 5-500 字" }, 400);
+
+    const discussions = await kvGetJSON(env, "discussions", []);
+    const d = discussions.find(function (x) { return x.id === discussionId; });
+    if (!d) return json({ error: "讨论不存在" }, 404);
+
+    /* 同 IP 60 秒内限 1 条（KV 120 秒自动过期） */
+    const ip = clientIP(request);
+    const guard = await env.CONTENT_KV.get("comment_guard:" + ip);
+    if (guard && Date.now() - parseInt(guard, 10) < 60000) {
+      return json({ error: "评论太频繁，请稍后再试" }, 429);
+    }
+    await env.CONTENT_KV.put("comment_guard:" + ip, String(Date.now()), { expirationTtl: 120 });
+
+    const pending = await kvGetJSON(env, "pending_comments", []);
+    const item = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      discussionId: discussionId,
+      discussionTitle: d.title,
+      nickname: nickname,
+      content: content,
+      date: nowString(),
+    };
+    pending.unshift(item);
+    await env.CONTENT_KV.put("pending_comments", JSON.stringify(pending));
+    return json({ success: true, message: "评论已提交，审核通过后展示", data: item });
+  }
+
+  /* GET /api/community/comments — 已审核评论（公开） */
+  if (path === "community/comments" && method === "GET") {
+    const comments = await kvGetJSON(env, "comments", []);
+    return json({ data: comments });
+  }
+
   /* ===== 管理操作（需认证） ===== */
 
   if (path === "content" && ["POST", "PUT", "DELETE"].includes(method)) {
@@ -633,6 +778,85 @@ export async function onRequest(context) {
 
       return json({ error: "该类型不支持删除: " + type }, 400);
     }
+  }
+
+  /* ===== 社区管理（需认证） ===== */
+
+  /* GET /api/community/admin?scope=members|pending|comments */
+  if (path === "community/admin" && method === "GET") {
+    if (!(await verifyAuth(request, env))) {
+      return json({ error: "未授权，请先登录" }, 401);
+    }
+    const scope = url.searchParams.get("scope") || "members";
+    if (scope === "members") {
+      const members = await kvGetJSON(env, "members", []);
+      /* 剥离内部 _ts */
+      const safe = members.map(function (m) {
+        const { _ts, ...rest } = m;
+        return rest;
+      });
+      return json({ data: safe });
+    }
+    if (scope === "pending") {
+      return json({ data: await kvGetJSON(env, "pending_comments", []) });
+    }
+    if (scope === "comments") {
+      return json({ data: await kvGetJSON(env, "comments", []) });
+    }
+    return json({ error: "未知 scope: " + scope }, 400);
+  }
+
+  /* POST /api/community/approve — 审核通过评论（待审 → 已审） */
+  if (path === "community/approve" && method === "POST") {
+    if (!(await verifyAuth(request, env))) {
+      return json({ error: "未授权，请先登录" }, 401);
+    }
+    let body;
+    try { body = await request.json(); } catch { return json({ error: "请求格式错误" }, 400); }
+    const id = (body.id || "").trim();
+    if (!id) return json({ error: "缺少 id" }, 400);
+
+    const pending = await kvGetJSON(env, "pending_comments", []);
+    const idx = pending.findIndex(function (c) { return c.id === id; });
+    if (idx === -1) return json({ error: "待审评论不存在" }, 404);
+    const approved = pending.splice(idx, 1)[0];
+    await env.CONTENT_KV.put("pending_comments", JSON.stringify(pending));
+
+    const comments = await kvGetJSON(env, "comments", []);
+    comments.unshift(approved);
+    await env.CONTENT_KV.put("comments", JSON.stringify(comments));
+    return json({ success: true, data: approved });
+  }
+
+  /* DELETE /api/community/member — 删除成员 */
+  if (path === "community/member" && method === "DELETE") {
+    if (!(await verifyAuth(request, env))) {
+      return json({ error: "未授权，请先登录" }, 401);
+    }
+    let body;
+    try { body = await request.json(); } catch { return json({ error: "请求格式错误" }, 400); }
+    const id = (body.id || "").trim();
+    if (!id) return json({ error: "缺少 id" }, 400);
+    const members = await kvGetJSON(env, "members", []);
+    const filtered = members.filter(function (m) { return m.id !== id; });
+    await env.CONTENT_KV.put("members", JSON.stringify(filtered));
+    return json({ success: true, remaining: filtered.length });
+  }
+
+  /* DELETE /api/community/comment — 删除评论（from=pending 或 comments） */
+  if (path === "community/comment" && method === "DELETE") {
+    if (!(await verifyAuth(request, env))) {
+      return json({ error: "未授权，请先登录" }, 401);
+    }
+    let body;
+    try { body = await request.json(); } catch { return json({ error: "请求格式错误" }, 400); }
+    const id = (body.id || "").trim();
+    const from = body.from === "pending" ? "pending_comments" : "comments";
+    if (!id) return json({ error: "缺少 id" }, 400);
+    const items = await kvGetJSON(env, from, []);
+    const filtered = items.filter(function (c) { return c.id !== id; });
+    await env.CONTENT_KV.put(from, JSON.stringify(filtered));
+    return json({ success: true, remaining: filtered.length });
   }
 
   /* ===== 初始化种子数据 ===== */
