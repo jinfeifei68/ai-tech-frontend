@@ -1180,6 +1180,41 @@
           <label>页脚站点描述（换行即分段）</label>
           <textarea id="config_footerDesc" rows="2" placeholder="聚焦人工智能前沿动态...">${escapeHtml(config.footerDesc || "")}</textarea>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>底部版权文字</label>
+            <input type="text" id="config_footerCopy" value="${escapeHtml(config.footerCopy || "")}" placeholder="如 © 2026 AI科技前沿 · 共同学习，共同成长">
+          </div>
+          <div class="form-group">
+            <label>底部技术署名</label>
+            <input type="text" id="config_footerBuilt" value="${escapeHtml(config.footerBuilt || "")}" placeholder="如 Built with ❤️ for AI Learners">
+          </div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <h3>各专区描述文字</h3>
+        <p style="font-size:0.8rem;color:var(--text-tertiary);margin:0 0 16px">修改首页各板块标题下方的描述文字，保存后前台立即生效。</p>
+        <div class="form-group">
+          <label>AI 要闻速递 — 描述</label>
+          <input type="text" id="config_descNews" value="${escapeHtml(config.descNews || "")}" placeholder="如 第一时间获取人工智能领域的重要新闻与技术突破">
+        </div>
+        <div class="form-group">
+          <label>技能知识分享 — 描述</label>
+          <input type="text" id="config_descSkills" value="${escapeHtml(config.descSkills || "")}" placeholder="如 实战教程、技术拆解、经验总结 — 从入门到精通">
+        </div>
+        <div class="form-group">
+          <label>视频教程专区 — 描述</label>
+          <input type="text" id="config_descVideos" value="${escapeHtml(config.descVideos || "")}" placeholder="如 高清视频教程，边看边练，轻松掌握 AI 实战技能">
+        </div>
+        <div class="form-group">
+          <label>数据可视化洞察 — 描述</label>
+          <input type="text" id="config_descCharts" value="${escapeHtml(config.descCharts || "")}" placeholder="如 用数据说话 — AI 行业趋势、技术热度、学习数据">
+        </div>
+        <div class="form-group">
+          <label>学习交流社区 — 描述</label>
+          <input type="text" id="config_descCommunity" value="${escapeHtml(config.descCommunity || "")}" placeholder="如 提出问题、分享见解、结识同行 — 在交流中共同成长">
+        </div>
       </div>
 
       <div class="config-section">
@@ -1367,6 +1402,13 @@
       heroSubtitle: val("config_heroSubtitle"),
       heroDesc: val("config_heroDesc"),
       footerDesc: val("config_footerDesc"),
+      footerCopy: val("config_footerCopy"),
+      footerBuilt: val("config_footerBuilt"),
+      descNews: val("config_descNews"),
+      descSkills: val("config_descSkills"),
+      descVideos: val("config_descVideos"),
+      descCharts: val("config_descCharts"),
+      descCommunity: val("config_descCommunity"),
       fontSize: val("config_fontSize") || "default",
       stats: stats,
       heroBadge: val("config_heroBadge"),

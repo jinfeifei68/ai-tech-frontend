@@ -971,6 +971,25 @@
       footerDesc.innerHTML = esc(cfg.footerDesc).replace(/\n/g, "<br>");
     }
 
+    /* 底部版权文字 */
+    var footerCopy = document.getElementById("footerCopyText");
+    if (footerCopy && cfg.footerCopy) footerCopy.textContent = cfg.footerCopy;
+    var footerBuilt = document.getElementById("footerBuiltText");
+    if (footerBuilt && cfg.footerBuilt) footerBuilt.textContent = cfg.footerBuilt;
+
+    /* 各专区描述文字 */
+    var descMap = {
+      descNews: "descNews",
+      descSkills: "descSkills",
+      descVideos: "descVideos",
+      descCharts: "descCharts",
+      descCommunity: "descCommunity",
+    };
+    Object.keys(descMap).forEach(function (key) {
+      var el = document.getElementById(descMap[key]);
+      if (el && cfg[key]) el.textContent = cfg[key];
+    });
+
     /* 全站字号 */
     if (cfg.fontSize && FONT_SIZE_MAP.hasOwnProperty(cfg.fontSize)) {
       document.documentElement.style.fontSize = FONT_SIZE_MAP[cfg.fontSize];
