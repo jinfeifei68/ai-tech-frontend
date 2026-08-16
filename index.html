@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI科技要闻 · 技能知识分享 · 共同学习交流 — 聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区">
+  <meta name="keywords" content="AI,人工智能,科技要闻,技能分享,知识社区,机器学习,深度学习">
+  <meta property="og:title" content="AI科技前沿 | 要闻 · 分享 · 交流">
+  <meta property="og:description" content="聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区">
+  <meta property="og:type" content="website">
+  <title>AI科技前沿 | 要闻 · 分享 · 交流</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+</head>
+<body>
+
+  <!-- ===== 顶部导航 ===== -->
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a href="#hero" class="logo" aria-label="返回首页">
+        <span class="logo__icon">
+          <svg viewBox="0 0 32 32" width="32" height="32" fill="none" aria-hidden="true">
+            <rect x="2" y="2" width="28" height="28" rx="8" stroke="url(#logoGrad)" stroke-width="2"/>
+            <path d="M10 12c0-2 2-4 6-4s6 2 6 4-2 3-4 4-4 2-4 4" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="16" cy="24" r="1.5" fill="url(#logoGrad)"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                <stop stop-color="#00d4ff"/>
+                <stop offset="1" stop-color="#7c4dff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </span>
+        <span class="logo__text">AI<span class="logo__accent">科技前沿</span></span>
+      </a>
+
+      <nav class="nav" id="nav" aria-label="主导航">
+        <a href="#news" class="nav__link">AI 要闻</a>
+        <a href="#skills" class="nav__link">技能分享</a>
+        <a href="#videos" class="nav__link">视频专区</a>
+        <a href="#charts" class="nav__link">数据洞察</a>
+        <a href="#community" class="nav__link">学习社区</a>
+      </nav>
+
+      <div class="header__actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="切换明暗主题" title="切换主题">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button class="btn btn--ghost header__menu-btn" id="menuBtn" aria-label="打开菜单" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Hero 区 ===== -->
+  <section class="hero" id="hero">
+    <div class="hero__bg" aria-hidden="true">
+      <div class="hero__orb hero__orb--1"></div>
+      <div class="hero__orb hero__orb--2"></div>
+      <div class="hero__orb hero__orb--3"></div>
+      <div class="hero__grid"></div>
+    </div>
+    <div class="container hero__content">
+      <div class="hero__badge">
+        <span class="pulse-dot"></span>
+        <span>每日更新 · 紧跟 AI 前沿</span>
+      </div>
+      <h1 class="hero__title">
+        <span class="gradient-text">AI 科技要闻</span><br>
+        <span class="hero__title-sub">技能知识分享 · 共同学习交流</span>
+      </h1>
+      <p class="hero__desc">
+        聚焦人工智能前沿动态，深度解读技术趋势<br>
+        分享实战技能，打造开放、活跃的学习社区
+      </p>
+      <div class="hero__actions">
+        <a href="#news" class="btn btn--primary">
+          <span>浏览要闻</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#community" class="btn btn--outline">加入社区</a>
+      </div>
+      <div class="hero__stats">
+        <div class="stat">
+          <span class="stat__num" data-count="1280">0</span>
+          <span class="stat__label">技术文章</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num" data-count="86">0</span>
+          <span class="stat__label">视频教程</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num" data-count="15200">0</span>
+          <span class="stat__label">社区成员</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num" data-count="42">0</span>
+          <span class="stat__label">活跃专栏</span>
+        </div>
+      </div>
+    </div>
+    <a href="#news" class="hero__scroll" aria-label="向下滚动">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </section>
+
+  <!-- ===== AI 要闻 ===== -->
+  <section class="section" id="news">
+    <div class="container">
+      <div class="section__header reveal">
+        <span class="section__tag">LATEST NEWS</span>
+        <h2 class="section__title">AI 要闻速递</h2>
+        <p class="section__subtitle">第一时间获取人工智能领域的重要新闻与技术突破</p>
+      </div>
+
+      <div class="news__filter reveal">
+        <button class="filter-btn filter-btn--active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="model">大模型</button>
+        <button class="filter-btn" data-filter="application">应用落地</button>
+        <button class="filter-btn" data-filter="research">学术研究</button>
+        <button class="filter-btn" data-filter="industry">产业动态</button>
+      </div>
+
+      <div class="news__grid">
+        <!-- 特色要闻 -->
+        <article class="news-card news-card--featured reveal" data-category="model">
+          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-model/800/450')">
+            <span class="news-card__badge news-card__badge--hot">热门</span>
+          </div>
+          <div class="news-card__body">
+            <span class="news-card__cat">大模型</span>
+            <h3 class="news-card__title">下一代多模态大模型发布：文本、图像、视频统一理解能力大幅提升</h3>
+            <p class="news-card__excerpt">新模型在多项基准测试中刷新纪录，支持超长上下文窗口，可同时处理文本、图像和视频输入，推理速度较前代提升 3 倍……</p>
+            <div class="news-card__meta">
+              <span class="news-card__date">2026-08-16</span>
+              <span class="news-card__reads">12.5k 阅读</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="news-card reveal" data-category="application">
+          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-app/600/400')">
+            <span class="news-card__badge">应用</span>
+          </div>
+          <div class="news-card__body">
+            <span class="news-card__cat">应用落地</span>
+            <h3 class="news-card__title">AI 编程助手全面升级：代码生成准确率突破 92%</h3>
+            <p class="news-card__excerpt">支持 40+ 编程语言，新增项目级上下文理解和自动测试生成功能……</p>
+            <div class="news-card__meta">
+              <span class="news-card__date">2026-08-15</span>
+              <span class="news-card__reads">8.3k 阅读</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="news-card reveal" data-category="research">
+          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-research/600/400')">
+            <span class="news-card__badge news-card__badge--new">新</span>
+          </div>
+          <div class="news-card__body">
+            <span class="news-card__cat">学术研究</span>
+            <h3 class="news-card__title">新型注意力机制提出：计算复杂度降低至线性级别</h3>
+            <p class="news-card__excerpt">研究团队提出 Linear Attention 变体，在保持性能的同时大幅降低计算开销……</p>
+            <div class="news-card__meta">
+              <span class="news-card__date">2026-08-14</span>
+              <span class="news-card__reads">5.7k 阅读</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="news-card reveal" data-category="industry">
+          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-industry/600/400')">
+            <span class="news-card__badge">产业</span>
+          </div>
+          <div class="news-card__body">
+            <span class="news-card__cat">产业动态</span>
+            <h3 class="news-card__title">全球 AI 芯片市场规模预计 2027 年突破 2000 亿美元</h3>
+            <p class="news-card__excerpt">最新行业报告显示，AI 算力需求持续高速增长，芯片产业迎来新一轮投资热潮……</p>
+            <div class="news-card__meta">
+              <span class="news-card__date">2026-08-13</span>
+              <span class="news-card__reads">9.1k 阅读</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="news-card reveal" data-category="model">
+          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-agi/600/400')">
+            <span class="news-card__badge">大模型</span>
+          </div>
+          <div class="news-card__body">
+            <span class="news-card__cat">大模型</span>
+            <h3 class="news-card__title">开源大模型生态繁荣：新基座模型参数量达 700B</h3>
+            <p class="news-card__excerpt">完全开源的商业可用大模型发布，支持本地部署与微调……</p>
+            <div class="news-card__meta">
+              <span class="news-card__date">2026-08-12</span>
+              <span class="news-card__reads">15.2k 阅读</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="news-card reveal" data-category="application">
+          <div class="news-card__img" style="--img-url: url('https://picsum.photos/seed/ai-medical/600/400')">
+            <span class="news-card__badge">应用</span>
+          </div>
+          <div class="news-card__body">
+            <span class="news-card__cat">应用落地</span>
+            <h3 class="news-card__title">AI 辅助医疗诊断系统获准进入临床试验</h3>
+            <p class="news-card__excerpt">多模态 AI 系统在影像诊断中准确率达到专家级水平……</p>
+            <div class="news-card__meta">
+              <span class="news-card__date">2026-08-11</span>
+              <span class="news-card__reads">6.8k 阅读</span>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="section__more reveal">
+        <a href="#" class="btn btn--outline">查看全部要闻</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 技能知识分享 ===== -->
+  <section class="section section--alt" id="skills">
+    <div class="container">
+      <div class="section__header reveal">
+        <span class="section__tag">SKILLS &amp; KNOWLEDGE</span>
+        <h2 class="section__title">技能知识分享</h2>
+        <p class="section__subtitle">实战教程、技术拆解、经验总结 — 从入门到精通的系统学习路径</p>
+      </div>
+
+      <div class="skills__layout">
+        <!-- 侧边分类 -->
+        <aside class="skills__sidebar reveal">
+          <h3 class="skills__sidebar-title">学习路径</h3>
+          <ul class="skills__paths">
+            <li class="path-item path-item--active" data-path="all">
+              <span class="path-item__icon">📚</span>
+              <span class="path-item__text">全部技能</span>
+              <span class="path-item__count">24</span>
+            </li>
+            <li class="path-item" data-path="python">
+              <span class="path-item__icon">🐍</span>
+              <span class="path-item__text">Python 进阶</span>
+              <span class="path-item__count">8</span>
+            </li>
+            <li class="path-item" data-path="ml">
+              <span class="path-item__icon">🧠</span>
+              <span class="path-item__text">机器学习</span>
+              <span class="path-item__count">6</span>
+            </li>
+            <li class="path-item" data-path="dl">
+              <span class="path-item__icon">⚡</span>
+              <span class="path-item__text">深度学习</span>
+              <span class="path-item__count">5</span>
+            </li>
+            <li class="path-item" data-path="nlp">
+              <span class="path-item__icon">💬</span>
+              <span class="path-item__text">NLP &amp; LLM</span>
+              <span class="path-item__count">5</span>
+            </li>
+            <li class="path-item" data-path="deploy">
+              <span class="path-item__icon">🚀</span>
+              <span class="path-item__text">模型部署</span>
+              <span class="path-item__count">4</span>
+            </li>
+          </ul>
+          <div class="skills__tip">
+            <h4>💡 学习建议</h4>
+            <p>建议按「Python 基础 → 机器学习 → 深度学习 → NLP → 部署实战」的顺序循序渐进。</p>
+          </div>
+        </aside>
+
+        <!-- 技能卡片 -->
+        <div class="skills__content">
+          <div class="skill-card reveal" data-path="python">
+            <div class="skill-card__top">
+              <span class="skill-card__icon">🐍</span>
+              <span class="skill-card__level">入门</span>
+            </div>
+            <h3 class="skill-card__title">Python 异步编程完全指南</h3>
+            <p class="skill-card__desc">深入理解 async/await、事件循环、协程调度，掌握高并发编程核心技能。</p>
+            <div class="skill-card__tags">
+              <span class="tag">asyncio</span>
+              <span class="tag">协程</span>
+              <span class="tag">并发</span>
+            </div>
+            <div class="skill-card__footer">
+              <span class="skill-card__duration">⏱ 45 分钟</span>
+              <a href="#" class="skill-card__link">开始学习 →</a>
+            </div>
+          </div>
+
+          <div class="skill-card reveal" data-path="ml">
+            <div class="skill-card__top">
+              <span class="skill-card__icon">🧠</span>
+              <span class="skill-card__level">进阶</span>
+            </div>
+            <h3 class="skill-card__title">从零实现梯度下降算法</h3>
+            <p class="skill-card__desc">手写梯度下降与反向传播，理解神经网络优化的数学本质。</p>
+            <div class="skill-card__tags">
+              <span class="tag">梯度下降</span>
+              <span class="tag">优化</span>
+              <span class="tag">NumPy</span>
+            </div>
+            <div class="skill-card__footer">
+              <span class="skill-card__duration">⏱ 60 分钟</span>
+              <a href="#" class="skill-card__link">开始学习 →</a>
+            </div>
+          </div>
+
+          <div class="skill-card reveal" data-path="dl">
+            <div class="skill-card__top">
+              <span class="skill-card__icon">⚡</span>
+              <span class="skill-card__level">高级</span>
+            </div>
+            <h3 class="skill-card__title">Transformer 架构深度剖析</h3>
+            <p class="skill-card__desc">逐层拆解 Self-Attention、Multi-Head 机制与位置编码，附 PyTorch 实现。</p>
+            <div class="skill-card__tags">
+              <span class="tag">Transformer</span>
+              <span class="tag">PyTorch</span>
+              <span class="tag">Attention</span>
+            </div>
+            <div class="skill-card__footer">
+              <span class="skill-card__duration">⏱ 90 分钟</span>
+              <a href="#" class="skill-card__link">开始学习 →</a>
+            </div>
+          </div>
+
+          <div class="skill-card reveal" data-path="nlp">
+            <div class="skill-card__top">
+              <span class="skill-card__icon">💬</span>
+              <span class="skill-card__level">进阶</span>
+            </div>
+            <h3 class="skill-card__title">RAG 检索增强生成实战</h3>
+            <p class="skill-card__desc">构建企业级知识问答系统：向量数据库 + Embedding + LLM 端到端方案。</p>
+            <div class="skill-card__tags">
+              <span class="tag">RAG</span>
+              <span class="tag">向量检索</span>
+              <span class="tag">LangChain</span>
+            </div>
+            <div class="skill-card__footer">
+              <span class="skill-card__duration">⏱ 75 分钟</span>
+              <a href="#" class="skill-card__link">开始学习 →</a>
+            </div>
+          </div>
+
+          <div class="skill-card reveal" data-path="deploy">
+            <div class="skill-card__top">
+              <span class="skill-card__icon">🚀</span>
+              <span class="skill-card__level">实战</span>
+            </div>
+            <h3 class="skill-card__title">大模型量化部署方案对比</h3>
+            <p class="skill-card__desc">INT8/INT4 量化、LoRA 微调、vLLM 部署 — 在消费级 GPU 上跑大模型。</p>
+            <div class="skill-card__tags">
+              <span class="tag">量化</span>
+              <span class="tag">vLLM</span>
+              <span class="tag">推理优化</span>
+            </div>
+            <div class="skill-card__footer">
+              <span class="skill-card__duration">⏱ 55 分钟</span>
+              <a href="#" class="skill-card__link">开始学习 →</a>
+            </div>
+          </div>
+
+          <div class="skill-card reveal" data-path="python">
+            <div class="skill-card__top">
+              <span class="skill-card__icon">🐍</span>
+              <span class="skill-card__level">入门</span>
+            </div>
+            <h3 class="skill-card__title">数据可视化：Matplotlib &amp; Seaborn 精要</h3>
+            <p class="skill-card__desc">从折线图到热力图，掌握科研级数据可视化的核心技巧。</p>
+            <div class="skill-card__tags">
+              <span class="tag">Matplotlib</span>
+              <span class="tag">Seaborn</span>
+              <span class="tag">可视化</span>
+            </div>
+            <div class="skill-card__footer">
+              <span class="skill-card__duration">⏱ 40 分钟</span>
+              <a href="#" class="skill-card__link">开始学习 →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 视频专区 ===== -->
+  <section class="section" id="videos">
+    <div class="container">
+      <div class="section__header reveal">
+        <span class="section__tag">VIDEO TUTORIALS</span>
+        <h2 class="section__title">视频教程专区</h2>
+        <p class="section__subtitle">高清视频教程，边看边练，轻松掌握 AI 实战技能</p>
+      </div>
+
+      <div class="videos__grid">
+        <!-- 主视频 -->
+        <div class="video-main reveal">
+          <div class="video-main__player" id="mainPlayer">
+            <video controls poster="https://picsum.photos/seed/video-main/1280/720" preload="metadata">
+              <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+              您的浏览器不支持视频播放，请升级浏览器。
+            </video>
+            <div class="video-main__overlay">
+              <h3>大模型微调实战：从数据准备到模型训练全流程</h3>
+              <div class="video-main__meta">
+                <span>▶ 28:35</span>
+                <span>📅 2026-08-15</span>
+                <span>👁 23.4k 观看</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 视频列表 -->
+        <div class="video-list reveal">
+          <div class="video-item" data-src="https://www.w3schools.com/html/mov_bbb.mp4" data-poster="https://picsum.photos/seed/video-1/640/360">
+            <div class="video-item__thumb" style="--img-url: url('https://picsum.photos/seed/video-1/640/360')">
+              <span class="video-item__duration">15:20</span>
+              <span class="video-item__play">▶</span>
+            </div>
+            <div class="video-item__info">
+              <h4>Python 数据处理三大神器对比</h4>
+              <span>12.3k 观看</span>
+            </div>
+          </div>
+          <div class="video-item" data-src="https://www.w3schools.com/html/movie.mp4" data-poster="https://picsum.photos/seed/video-2/640/360">
+            <div class="video-item__thumb" style="--img-url: url('https://picsum.photos/seed/video-2/640/360')">
+              <span class="video-item__duration">22:08</span>
+              <span class="video-item__play">▶</span>
+            </div>
+            <div class="video-item__info">
+              <h4>Transformer 原理动画讲解</h4>
+              <span>18.7k 观看</span>
+            </div>
+          </div>
+          <div class="video-item" data-src="https://www.w3schools.com/html/mov_bbb.mp4" data-poster="https://picsum.photos/seed/video-3/640/360">
+            <div class="video-item__thumb" style="--img-url: url('https://picsum.photos/seed/video-3/640/360')">
+              <span class="video-item__duration">35:42</span>
+              <span class="video-item__play">▶</span>
+            </div>
+            <div class="video-item__info">
+              <h4>从零搭建 RAG 知识库系统</h4>
+              <span>9.5k 观看</span>
+            </div>
+          </div>
+          <div class="video-item" data-src="https://www.w3schools.com/html/movie.mp4" data-poster="https://picsum.photos/seed/video-4/640/360">
+            <div class="video-item__thumb" style="--img-url: url('https://picsum.photos/seed/video-4/640/360')">
+              <span class="video-item__duration">18:55</span>
+              <span class="video-item__play">▶</span>
+            </div>
+            <div class="video-item__info">
+              <h4>GPU 显存优化技巧大全</h4>
+              <span>7.2k 观看</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 数据可视化 ===== -->
+  <section class="section section--alt" id="charts">
+    <div class="container">
+      <div class="section__header reveal">
+        <span class="section__tag">DATA INSIGHTS</span>
+        <h2 class="section__title">数据可视化洞察</h2>
+        <p class="section__subtitle">用数据说话 — AI 行业趋势、技术热度、学习数据一目了然</p>
+      </div>
+
+      <div class="charts__grid">
+        <div class="chart-card chart-card--wide reveal">
+          <div class="chart-card__head">
+            <h3>AI 模型参数量演进趋势 (2020-2026)</h3>
+            <span class="chart-card__badge">趋势</span>
+          </div>
+          <div class="chart-card__body">
+            <canvas id="chartTrend"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card reveal">
+          <div class="chart-card__head">
+            <h3>热门 AI 技术方向</h3>
+            <span class="chart-card__badge">排行</span>
+          </div>
+          <div class="chart-card__body">
+            <canvas id="chartRadar"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card reveal">
+          <div class="chart-card__head">
+            <h3>社区学习偏好分布</h3>
+            <span class="chart-card__badge">占比</span>
+          </div>
+          <div class="chart-card__body">
+            <canvas id="chartDoughnut"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card chart-card--wide reveal">
+          <div class="chart-card__head">
+            <h3>月度技术文章发布量 vs 阅读量</h3>
+            <span class="chart-card__badge">对比</span>
+          </div>
+          <div class="chart-card__body">
+            <canvas id="chartBar"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 学习交流社区 ===== -->
+  <section class="section" id="community">
+    <div class="container">
+      <div class="section__header reveal">
+        <span class="section__tag">COMMUNITY</span>
+        <h2 class="section__title">学习交流社区</h2>
+        <p class="section__subtitle">提出问题、分享见解、结识同行 — 在交流中共同成长</p>
+      </div>
+
+      <div class="community__layout">
+        <!-- 热门讨论 -->
+        <div class="community__main reveal">
+          <h3 class="community__sub-title">🔥 热门讨论</h3>
+          <div class="discussion">
+            <div class="discussion__avatar">张</div>
+            <div class="discussion__content">
+              <div class="discussion__head">
+                <span class="discussion__author">张同学</span>
+                <span class="discussion__time">2 小时前</span>
+              </div>
+              <h4 class="discussion__title">本地部署 70B 模型需要什么配置？</h4>
+              <p class="discussion__text">想在自己的工作站上跑 70B 开源模型，目前有 RTX 4090 24G，够用吗？需要量化到什么程度？</p>
+              <div class="discussion__tags">
+                <span class="tag">模型部署</span>
+                <span class="tag">量化</span>
+              </div>
+              <div class="discussion__stats">
+                <span>💬 23 回复</span>
+                <span>👍 87</span>
+                <span>👁 1.2k</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="discussion">
+            <div class="discussion__avatar discussion__avatar--alt">李</div>
+            <div class="discussion__content">
+              <div class="discussion__head">
+                <span class="discussion__author">李工程师</span>
+                <span class="discussion__time">5 小时前</span>
+              </div>
+              <h4 class="discussion__title">RAG 系统中 Chunk 大小怎么选最优？</h4>
+              <p class="discussion__text">不同文档类型（代码、论文、FAQ）的合理分块策略有什么区别？有没有经验值参考？</p>
+              <div class="discussion__tags">
+                <span class="tag">RAG</span>
+                <span class="tag">向量检索</span>
+              </div>
+              <div class="discussion__stats">
+                <span>💬 15 回复</span>
+                <span>👍 64</span>
+                <span>👁 892</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="discussion">
+            <div class="discussion__avatar">王</div>
+            <div class="discussion__content">
+              <div class="discussion__head">
+                <span class="discussion__author">王研究员</span>
+                <span class="discussion__time">昨天</span>
+              </div>
+              <h4 class="discussion__title">分享：我用 LoRA 微调大模型的踩坑记录</h4>
+              <p class="discussion__text">从数据清洗到训练参数调优，记录了完整的微调过程和遇到的 10 个坑及解决方案……</p>
+              <div class="discussion__tags">
+                <span class="tag">LoRA</span>
+                <span class="tag">微调</span>
+                <span class="tag">经验分享</span>
+              </div>
+              <div class="discussion__stats">
+                <span>💬 42 回复</span>
+                <span>👍 156</span>
+                <span>👁 3.5k</span>
+              </div>
+            </div>
+          </div>
+
+          <a href="#" class="btn btn--outline community__more">查看更多讨论</a>
+        </div>
+
+        <!-- 侧边栏 -->
+        <aside class="community__sidebar reveal">
+          <div class="join-card">
+            <h3>加入社区</h3>
+            <p>注册即可参与讨论、收藏文章、跟踪学习进度</p>
+            <form class="join-form" onsubmit="return false">
+              <input type="text" placeholder="你的昵称" aria-label="昵称" required>
+              <input type="email" placeholder="邮箱地址" aria-label="邮箱" required>
+              <button type="submit" class="btn btn--primary btn--block">立即加入</button>
+            </form>
+            <p class="join-card__note">已有账号？<a href="#">登录</a></p>
+          </div>
+
+          <div class="contributor-card">
+            <h3>🏆 本周贡献者</h3>
+            <ul class="contributor-list">
+              <li>
+                <span class="contributor-list__rank">1</span>
+                <span class="contributor-list__avatar">王</span>
+                <span class="contributor-list__name">王研究员</span>
+                <span class="contributor-list__score">2,840</span>
+              </li>
+              <li>
+                <span class="contributor-list__rank">2</span>
+                <span class="contributor-list__avatar">李</span>
+                <span class="contributor-list__name">李工程师</span>
+                <span class="contributor-list__score">2,120</span>
+              </li>
+              <li>
+                <span class="contributor-list__rank">3</span>
+                <span class="contributor-list__avatar">陈</span>
+                <span class="contributor-list__name">陈博士</span>
+                <span class="contributor-list__score">1,860</span>
+              </li>
+              <li>
+                <span class="contributor-list__rank">4</span>
+                <span class="contributor-list__avatar">赵</span>
+                <span class="contributor-list__name">赵同学</span>
+                <span class="contributor-list__score">1,540</span>
+              </li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 页脚 ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__col footer__col--brand">
+          <a href="#hero" class="logo logo--footer">
+            <span class="logo__text">AI<span class="logo__accent">科技前沿</span></span>
+          </a>
+          <p class="footer__desc">聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区。与万千开发者一起，拥抱 AI 时代。</p>
+          <div class="footer__social">
+            <a href="#" aria-label="GitHub" class="footer__social-link">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            </a>
+            <a href="#" aria-label="微信" class="footer__social-link">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.902-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 0 1 .598.082l1.584.926a.272.272 0 0 0 .14.045c.134 0 .24-.111.24-.247 0-.06-.024-.12-.04-.177l-.326-1.232a.582.582 0 0 1-.023-.156.49.49 0 0 1 .201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-3.04-5.91-6.81-6.084l-.252-.038zm-3.373 3.379c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.969-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.969-.982z"/></svg>
+            </a>
+            <a href="#" aria-label="知乎" class="footer__social-link">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M5.721 0C2.251 0 0 2.25 0 5.719V18.28C0 21.751 2.252 24 5.721 24h12.56C21.751 24 24 21.75 24 18.281V5.72C24 2.249 21.75 0 18.281 0H5.72zm1.964 4.078c-.271.73-.5 1.434-.686 2.111h4.878v2.092h-1.53v8.548h1.395l.262 2.094-3.49-.014c.375.545.802 1.246 1.283 2.103l-2.246.884a30.7 30.7 0 0 0-1.566-2.83l1.766-.686H4.392v-8.9h2.526c.207-.738.392-1.52.553-2.342l2.214.45zm6.12 2.076h6.077v9.176h-2.39v-1.258h-1.375v1.258h-2.312V6.155zm2.312 2.094v3.726h1.375V8.249h-1.375zM7.956 7.926l-2.146.712c-.178.74-.392 1.453-.644 2.135h2.43v3.764H4.794v-4.375l2.168-.719.994-1.517zm12.055 7.897c.421.547.92 1.222 1.498 2.022l-1.944 1.005c-.399-.684-.828-1.364-1.283-2.04l1.729-.987z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer__col">
+          <h4 class="footer__title">内容导航</h4>
+          <ul class="footer__links">
+            <li><a href="#news">AI 要闻</a></li>
+            <li><a href="#skills">技能分享</a></li>
+            <li><a href="#videos">视频教程</a></li>
+            <li><a href="#charts">数据洞察</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h4 class="footer__title">学习资源</h4>
+          <ul class="footer__links">
+            <li><a href="#">入门指南</a></li>
+            <li><a href="#">进阶教程</a></li>
+            <li><a href="#">开源项目</a></li>
+            <li><a href="#">论文解读</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h4 class="footer__title">关于我们</h4>
+          <ul class="footer__links">
+            <li><a href="#">团队介绍</a></li>
+            <li><a href="#">投稿须知</a></li>
+            <li><a href="#">联系方式</a></li>
+            <li><a href="#">隐私政策</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <p>© 2026 AI科技前沿 · 共同学习，共同成长</p>
+        <p class="footer__built">Built with ❤️ for AI Learners</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 返回顶部 -->
+  <button class="back-to-top" id="backToTop" aria-label="返回顶部">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
