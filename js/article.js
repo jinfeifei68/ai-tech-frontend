@@ -67,6 +67,16 @@
 
   loadSiteBranding();
 
+  /* ===== 底部版权文字双击进入管理后台 ===== */
+  (function setupAdminAccess() {
+    var copyEl = document.getElementById("footerCopyText");
+    if (!copyEl) return;
+    copyEl.style.cursor = "pointer";
+    copyEl.addEventListener("dblclick", function () {
+      window.location.href = "/admin.html";
+    });
+  })();
+
   /* ===== SEO / 社交卡片动态更新 ===== */
   function setMetaTag(selector, content) {
     if (content == null) return;

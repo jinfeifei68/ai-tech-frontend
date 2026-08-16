@@ -963,6 +963,30 @@
     container.innerHTML = html;
   }
 
+  /* 底部链接列表渲染（学习资源 / 关于我们，后台可配置） */
+  function renderFooterLinks(containerId, links) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    if (!links || !links.length) return; /* 无配置则保留默认 HTML */
+    var html = links.map(function (l) {
+      var label = l.label || "链接";
+      var url = l.url || "#";
+      return '<li><a href="' + esc(url) + '">' + esc(label) + '</a></li>';
+    }).join("");
+    container.innerHTML = html;
+  }
+
+  /* 底部版权文字双击进入管理后台 */
+  function setupAdminAccess() {
+    var copyEl = document.getElementById("footerCopyText");
+    if (!copyEl) return;
+    copyEl.style.cursor = "pointer";
+    copyEl.title = "";
+    copyEl.addEventListener("dblclick", function () {
+      window.location.href = "admin.html";
+    });
+  }
+
   function applySiteBranding(cfg) {
     if (!cfg) return;
 
@@ -1018,6 +1042,13 @@
 
     /* 底部社交媒体链接（后台可配置） */
     if (cfg.socialLinks) renderSocialLinks(cfg.socialLinks);
+
+    /* 底部链接列表（学习资源 / 关于我们，后台可配置） */
+    if (cfg.resourceLinks) renderFooterLinks("footerResourceLinks", cfg.resourceLinks);
+    if (cfg.aboutLinks) renderFooterLinks("footerAboutLinks", cfg.aboutLinks);
+
+    /* 底部版权文字双击进入管理后台 */
+    setupAdminAccess();
 
     /* 各专区描述文字 */
     var descMap = {

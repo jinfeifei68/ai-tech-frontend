@@ -242,6 +242,7 @@
       case "members": renderMembers(); break;
       case "comments": renderComments("pending"); break;
       case "contributors": renderContributors(); break;
+      case "pages": renderPages(); break;
       case "config": renderConfig(); break;
     }
   }
@@ -255,6 +256,7 @@
       videos: (d.videos || []).length,
       discussions: (d.discussions || []).length,
       contributors: (d.contributors || []).length,
+      pages: (d.pages || []).length,
     };
 
     adminMain.innerHTML = `
@@ -265,6 +267,7 @@
         ${dashCard("🎬 视频教程", counts.videos, "个视频")}
         ${dashCard("💬 社区讨论", counts.discussions, "条讨论")}
         ${dashCard("🏆 贡献者", counts.contributors, "位贡献者")}
+        ${dashCard("📄 内容页面", counts.pages, "个页面")}
       </div>
       <div id="dashCommunity" class="dash-community">
         <p>⏳ 加载社区数据...</p>
@@ -452,6 +455,8 @@
     if (!ctx) return;
     if (ctx.type === "skill") {
       editSkill(ctx.id || null);
+    } else if (ctx.type === "page") {
+      editPage(ctx.id || null);
     } else {
       editArticle(ctx.id || null);
     }
@@ -1122,6 +1127,118 @@
     }
   }
 
+  /* ===== 页面管理（关于我们 / 学习资源等内容页） ===== */
+  function renderPages() {
+    var items = contentData.pages || [];
+    var rows = items.map(function (p) {
+      return '<tr>' +
+        '<td style="font-family:monospace;color:var(--accent-cyan)">' + escapeHtml(p.id) + '</td>' +
+        '<td>' + escapeHtml(p.title) + '</td>' +
+        '<td>' + escapeHtml(p.navLabel || p.title) + '</td>' +
+        '<td style="color:var(--text-tertiary);font-size:0.85rem">' + escapeHtml(p.updatedAt || "-") + '</td>' +
+        '<td class="row-actions">' +
+          '<button class="icon-btn" onclick="window.__admin.editPage(\'' + p.id + '\')" title="编辑">✏</button>' +
+          '<button class="icon-btn icon-btn--danger" onclick="window.__admin.deletePage(\'' + p.id + '\')" title="删除">🗑</button>' +
+        '</td>' +
+      '</tr>';
+    }).join("");
+
+    adminMain.innerHTML =
+      '<div class="section-admin-header">' +
+        '<h2>页面管理</h2>' +
+        '<button class="btn btn--primary btn--sm" onclick="window.__admin.editPage()">+ 新增页面</button>' +
+      '</div>' +
+      '<div class="table-wrapper">' +
+        (items.length
+          ? '<table class="data-table"><thead><tr><th>页面 ID</th><th>标题</th><th>导航名称</th><th>更新时间</th><th>操作</th></tr></thead><tbody>' + rows + '</tbody></table>'
+          : emptyState("暂无页面", "新增页面")) +
+      '</div>';
+  }
+
+  function editPage(id) {
+    window.__editingCtx = { type: "page", id: id || null };
+    var p = id ? (contentData.pages || []).find(function (x) { return x.id === id; }) : null;
+    openModal(id ? "编辑页面" : "新增页面",
+      '<div class="form-row">' +
+        '<div class="form-group"><label>页面 ID（英文，如 team / privacy）</label>' +
+        '<input type="text" id="f_pageId" value="' + (p ? escapeHtml(p.id) : "") + '" placeholder="如 team"' + (id ? ' readonly style="opacity:0.6"' : '') + '></div>' +
+        '<div class="form-group"><label>导航名称（底部链接显示名）</label>' +
+        '<input type="text" id="f_navLabel" value="' + (p ? escapeHtml(p.navLabel || p.title) : "") + '" placeholder="如 团队介绍"></div>' +
+      '</div>' +
+      '<div class="form-group"><label>页面标题</label>' +
+      '<input type="text" id="f_pageTitle" value="' + (p ? escapeHtml(p.title) : "") + '" placeholder="如 团队介绍"></div>' +
+      '<div class="form-group"><label>正文内容 <span style="font-size:0.8rem;color:var(--text-tertiary)">(支持 Markdown 格式)</span></label>' +
+      '<textarea id="f_content" class="editor-content" placeholder="## 标题&#10;&#10;正文内容..." style="min-height:300px;font-family:\'JetBrains Mono\',Consolas,monospace;font-size:0.9rem">' + (p ? escapeHtml(p._content || "") : "") + '</textarea>' +
+      '<div style="display:flex;gap:8px;margin-top:6px">' +
+        '<button class="btn btn--outline btn--sm" onclick="window.__admin.previewContent()" style="font-size:0.8rem">预览</button>' +
+        '<span style="font-size:0.75rem;color:var(--text-tertiary);align-self:center">支持 Markdown：# 标题、**加粗**、- 列表、`代码`</span>' +
+      '</div></div>' +
+      '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:24px">' +
+        '<button class="btn btn--outline btn--sm" onclick="window.__admin.closeModal()">取消</button>' +
+        '<button class="btn btn--primary btn--sm" onclick="window.__admin.savePage(\'' + (id || "") + '\')">保存</button>' +
+      '</div>'
+    );
+
+    /* 异步加载正文 */
+    if (id) {
+      loadPageContent(id);
+    }
+  }
+
+  async function loadPageContent(id) {
+    var textarea = document.getElementById("f_content");
+    if (!textarea) return;
+    textarea.placeholder = "正在加载正文...";
+    try {
+      var response = await fetch("/api/page?id=" + encodeURIComponent(id));
+      if (response.ok) {
+        var data = await response.json();
+        if (data.content) {
+          textarea.value = data.content;
+        }
+      }
+    } catch (e) {
+      textarea.placeholder = "正文加载失败，可重新输入";
+    }
+  }
+
+  async function savePage(id) {
+    var pageId = val("f_pageId");
+    if (!pageId) { toast("请输入页面 ID", "error"); return; }
+    var data = {
+      id: pageId,
+      title: val("f_pageTitle"),
+      navLabel: val("f_navLabel"),
+      content: val("f_content"),
+      updatedAt: formatDate(new Date()),
+    };
+    if (!data.title) { toast("请输入页面标题", "error"); return; }
+    try {
+      if (id) {
+        await api("/content", { method: "PUT", body: JSON.stringify({ type: "pages", id: id, data: data }) });
+        toast("页面已更新", "success");
+      } else {
+        await api("/content", { method: "POST", body: JSON.stringify({ type: "pages", data: data }) });
+        toast("页面已添加", "success");
+      }
+      closeModal();
+      await loadAllContent();
+      renderPages();
+    } catch (e) { toast(e.message, "error"); }
+  }
+
+  async function deletePage(id) {
+    var p = (contentData.pages || []).find(function (x) { return x.id === id; });
+    confirmDialog("删除页面", "确定删除「" + (p ? p.title : "") + "」？", async function () {
+      try {
+        await api("/content", { method: "DELETE", body: JSON.stringify({ type: "pages", id: id }) });
+        toast("已删除", "success");
+        await loadAllContent();
+        renderPages();
+      } catch (e) { toast(e.message, "error"); }
+    });
+  }
+
   /* ===== 网站配置 ===== */
   function renderConfig() {
     var config = contentData.site_config || {};
@@ -1221,6 +1338,35 @@
           }).join("")}
         </div>
         <button class="btn btn--outline btn--sm" style="margin-top:12px" onclick="window.__admin.addSocialRow()">+ 添加社交链接</button>
+      </div>
+
+      <div class="config-section">
+        <h3>底部链接列表</h3>
+        <p style="font-size:0.8rem;color:var(--text-tertiary);margin:0 0 16px">修改底部「学习资源」和「关于我们」两个板块的链接条目，支持添加/编辑/删除。链接可填站内锚点（如 #skills）或完整 URL。</p>
+
+        <h4 style="margin-bottom:8px">学习资源</h4>
+        <div class="config-linklist" id="configResourceLinks">
+          ${(config.resourceLinks || []).map(function (l, i) {
+            return `<div class="config-linklist-row">
+              <input type="text" class="config-linklist-label" data-idx="${i}" value="${escapeHtml(l.label || "")}" placeholder="链接名称（如 入门指南）">
+              <input type="text" class="config-linklist-url" data-idx="${i}" value="${escapeHtml(l.url || "")}" placeholder="链接地址（如 #skills 或 https://...）">
+              <button class="icon-btn icon-btn--danger" onclick="this.parentElement.remove()" title="删除">🗑</button>
+            </div>`;
+          }).join("")}
+        </div>
+        <button class="btn btn--outline btn--sm" style="margin:8px 0 20px" onclick="window.__admin.addLinkRow('configResourceLinks')">+ 添加学习资源链接</button>
+
+        <h4 style="margin-bottom:8px">关于我们</h4>
+        <div class="config-linklist" id="configAboutLinks">
+          ${(config.aboutLinks || []).map(function (l, i) {
+            return `<div class="config-linklist-row">
+              <input type="text" class="config-linklist-label" data-idx="${i}" value="${escapeHtml(l.label || "")}" placeholder="链接名称（如 团队介绍）">
+              <input type="text" class="config-linklist-url" data-idx="${i}" value="${escapeHtml(l.url || "")}" placeholder="链接地址（如 page.html?id=team）">
+              <button class="icon-btn icon-btn--danger" onclick="this.parentElement.remove()" title="删除">🗑</button>
+            </div>`;
+          }).join("")}
+        </div>
+        <button class="btn btn--outline btn--sm" style="margin-top:8px" onclick="window.__admin.addLinkRow('configAboutLinks')">+ 添加关于我们链接</button>
       </div>
 
       <div class="config-section">
@@ -1402,6 +1548,19 @@
     container.appendChild(div);
   }
 
+  function addLinkRow(containerId) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var idx = container.children.length;
+    var div = document.createElement("div");
+    div.className = "config-linklist-row";
+    div.innerHTML =
+      '<input type="text" class="config-linklist-label" data-idx="' + idx + '" value="" placeholder="链接名称">' +
+      '<input type="text" class="config-linklist-url" data-idx="' + idx + '" value="" placeholder="链接地址">' +
+      '<button class="icon-btn icon-btn--danger" onclick="this.parentElement.remove()">🗑</button>';
+    container.appendChild(div);
+  }
+
   /* 图表输入解析：逗号分隔（兼容中文逗号） */
   function parseList(str) {
     return String(str || "").split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
@@ -1466,6 +1625,21 @@
       }
     });
 
+    /* 底部链接列表 */
+    function collectLinkList(containerId) {
+      var links = [];
+      document.querySelectorAll("#" + containerId + " .config-linklist-row").forEach(function (row) {
+        var label = row.querySelector(".config-linklist-label").value.trim();
+        var url = row.querySelector(".config-linklist-url").value.trim();
+        if (label || url) {
+          links.push({ label: label, url: url });
+        }
+      });
+      return links;
+    }
+    var resourceLinks = collectLinkList("configResourceLinks");
+    var aboutLinks = collectLinkList("configAboutLinks");
+
     var data = {
       siteName: val("config_siteName"),
       logoUrl: val("config_logoUrl"),
@@ -1487,6 +1661,8 @@
       paths: paths,
       charts: charts,
       socialLinks: socialLinks,
+      resourceLinks: resourceLinks,
+      aboutLinks: aboutLinks,
     };
 
     try {
@@ -1548,6 +1724,9 @@
     editContributor: editContributor,
     saveContributor: saveContributor,
     deleteContributor: deleteContributor,
+    editPage: editPage,
+    savePage: savePage,
+    deletePage: deletePage,
     renderMembers: renderMembers,
     deleteMember: deleteMember,
     renderComments: renderComments,
@@ -1558,6 +1737,7 @@
     addStatRow: addStatRow,
     addPathRow: addPathRow,
     addSocialRow: addSocialRow,
+    addLinkRow: addLinkRow,
     closeModal: closeModal,
     initData: initData,
   };
