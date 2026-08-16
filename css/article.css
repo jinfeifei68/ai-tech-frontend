@@ -372,6 +372,15 @@
   background-position: center;
 }
 
+/* 技能相关卡片：无图片时以 emoji 图标展示 */
+.related-card__img--icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.12), rgba(124, 77, 255, 0.12));
+}
+
 .related-card__body {
   padding: 14px 16px;
 }

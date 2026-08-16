@@ -810,6 +810,11 @@ input {
   box-shadow: var(--shadow-lg);
 }
 
+/* 可点击的技能卡片（进入教程详情页） */
+.skill-card--clickable {
+  cursor: pointer;
+}
+
 .skill-card__top {
   display: flex;
   align-items: center;
@@ -907,6 +912,15 @@ input {
   width: 100%;
   display: block;
   aspect-ratio: 16 / 9;
+  background: #000;
+}
+
+/* 嵌入视频（B站等）iframe，与 video 同比例 */
+.video-main__embed {
+  width: 100%;
+  display: block;
+  aspect-ratio: 16 / 9;
+  border: 0;
   background: #000;
 }
 
