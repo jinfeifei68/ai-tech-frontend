@@ -352,6 +352,11 @@ const SEED = {
       { id: "deploy", icon: "🚀", text: "模型部署", count: 4 },
     ],
     learningTip: "建议按「Python 基础 → 机器学习 → 深度学习 → NLP → 部署实战」的顺序循序渐进。",
+    socialLinks: [
+      { type: "github", label: "GitHub", url: "https://github.com", icon: "" },
+      { type: "wechat", label: "微信", url: "#", icon: "" },
+      { type: "zhihu", label: "知乎", url: "https://www.zhihu.com", icon: "" },
+    ],
     charts: {
       trend: {
         title: "AI 模型参数量演进趋势 (2020-2026)",
