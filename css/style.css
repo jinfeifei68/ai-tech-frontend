@@ -691,6 +691,19 @@ input {
   color: var(--text-tertiary);
 }
 
+.news-card__readmore {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--accent-cyan);
+  transition: gap 0.2s;
+}
+
+.news-card:hover .news-card__readmore {
+  letter-spacing: 0.5px;
+}
+
 /* ========================================
    技能知识分享
    ======================================== */

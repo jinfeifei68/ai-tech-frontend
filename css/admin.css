@@ -696,3 +696,108 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== 正文编辑器 ===== */
+.editor-content {
+  min-height: 300px;
+  resize: vertical;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* ===== 正文预览 ===== */
+.article-preview {
+  padding: 20px;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  max-height: 60vh;
+  overflow-y: auto;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.article-preview h2 {
+  font-size: 1.4rem;
+  color: var(--text-primary);
+  margin: 20px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.article-preview h3 {
+  font-size: 1.15rem;
+  color: var(--text-primary);
+  margin: 16px 0 8px;
+}
+
+.article-preview p {
+  margin-bottom: 12px;
+}
+
+.article-preview ul,
+.article-preview ol {
+  margin: 0 0 12px;
+  padding-left: 24px;
+}
+
+.article-preview li {
+  margin-bottom: 6px;
+}
+
+.article-preview code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 212, 255, 0.1);
+  color: var(--accent-cyan);
+}
+
+.article-preview pre {
+  margin: 12px 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.article-preview pre code {
+  background: none;
+  color: var(--text-primary);
+  padding: 0;
+}
+
+.article-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 0.9rem;
+}
+
+.article-preview th {
+  padding: 8px 12px;
+  background: rgba(0, 212, 255, 0.08);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border);
+  text-align: left;
+}
+
+.article-preview td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.article-preview blockquote {
+  margin: 12px 0;
+  padding: 10px 16px;
+  border-left: 3px solid var(--accent-cyan);
+  background: rgba(0, 212, 255, 0.05);
+  border-radius: 0 6px 6px 0;
+}
+
+.article-preview strong {
+  color: var(--text-primary);
+}
