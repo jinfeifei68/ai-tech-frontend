@@ -335,6 +335,36 @@ const SEED = {
     { id: "c3", rank: 3, avatar: "陈", name: "陈博士", score: "1,860" },
     { id: "c4", rank: 4, avatar: "赵", name: "赵同学", score: "1,540" },
   ],
+  pages: [
+    {
+      id: "team",
+      title: "团队介绍",
+      navLabel: "团队介绍",
+      updatedAt: "2026-08-16",
+      content: "## 关于 AI 科技前沿\n\nAI 科技前沿是一个聚焦人工智能领域的学习与分享平台，由一群热爱技术的开发者共同创建和维护。\n\n### 我们的使命\n\n让每一位对 AI 感兴趣的学习者都能找到适合自己的学习路径，从入门到精通，从理论到实践。\n\n### 我们做什么\n\n- **AI 要闻速递**：第一时间追踪和解读人工智能领域的重要新闻与技术突破\n- **技能知识分享**：撰写和整理实战教程，涵盖 Python、机器学习、深度学习、NLP、模型部署等方向\n- **视频教程专区**：制作和精选高质量视频教程，边看边练\n- **数据可视化**：用图表呈现行业趋势、技术热度和学习数据\n- **学习社区**：打造开放的讨论和交流空间，让知识在互动中增长\n\n### 我们的团队\n\n团队成员包括 AI 领域的研究员、工程师和博士，分布在不同的城市，通过线上协作共同维护这个平台。每个人都在用自己的专业知识，为社区贡献有价值的内容。\n\n### 加入我们\n\n如果你也热爱 AI，愿意分享你的知识和见解，欢迎通过「投稿须知」了解投稿方式，或通过「联系方式」与我们取得联系。我们期待你的加入！\n\n---\n\n*AI 科技前沿 — 共同学习，共同成长*",
+    },
+    {
+      id: "contribute",
+      title: "投稿须知",
+      navLabel: "投稿须知",
+      updatedAt: "2026-08-16",
+      content: "## 投稿指南\n\n感谢您对 AI 科技前沿的关注！我们欢迎所有热爱 AI 的开发者、研究者和学习者投稿，分享您的知识、经验和见解。\n\n### 投稿类型\n\n1. **技术文章**：Python、机器学习、深度学习、NLP、模型部署等方向的技术教程和实战经验\n2. **行业要闻**：AI 领域的重要新闻、研究成果、产品发布和行业分析\n3. **技能教程**：图文并茂的实战教程，帮助读者从零开始掌握一项技能\n4. **观点评论**：对 AI 行业趋势、技术方向的深度思考和见解\n\n### 投稿要求\n\n- **原创性**：投稿内容须为原创或已获授权转载，禁止抄袭\n- **质量标准**：内容充实、逻辑清晰、代码可运行、图片清晰\n- **格式规范**：推荐使用 Markdown 格式，代码块标注语言，图片标注说明\n- **字数建议**：技术文章建议 1500 字以上，行业要闻 500 字以上\n\n### 投稿流程\n\n1. **准备内容**：将文章整理为 Markdown 格式，附上必要的图片和代码\n2. **联系编辑**：通过「联系方式」页面找到我们的邮箱或社交账号\n3. **审核反馈**：我们会在 3 个工作日内回复审核结果，如需修改会附上建议\n4. **发布上线**：审核通过后，文章将在 24 小时内发布到网站\n\n### 注意事项\n\n- 投稿即授权我们在 AI 科技前沿平台发布您的内容\n- 作者署名将保留，我们尊重每一位贡献者的劳动成果\n- 如需转载已发布的内容，请联系原作者获取授权\n- 我们保留对投稿内容的编辑和修改权\n\n---\n\n*期待您的精彩分享！*",
+    },
+    {
+      id: "contact",
+      title: "联系方式",
+      navLabel: "联系方式",
+      updatedAt: "2026-08-16",
+      content: "## 联系我们\n\n欢迎通过以下方式与 AI 科技前沿团队取得联系。\n\n### 邮箱\n\n- **投稿与合作**：发送邮件至底部社交链接中的邮箱\n- **问题反馈**：网站使用中遇到问题，欢迎邮件反馈\n\n### 社交媒体\n\n请查看网站底部的社交媒体图标，点击即可跳转到我们的官方账号。我们会在以下平台同步更新内容：\n\n- **GitHub**：开源项目和代码仓库\n- **微信**：公众号，获取最新文章推送\n- **知乎**：技术问答和深度专栏\n\n### 社区讨论\n\n如果您有 AI 相关的问题想讨论，欢迎访问首页的「学习社区」板块，发帖参与讨论。社区是开放的，每位访客都可以参与交流。\n\n### 反馈建议\n\n我们非常重视用户的反馈和建议：\n\n- 发现网站 Bug 或内容错误，请邮件告知\n- 有功能建议或改进想法，欢迎分享\n- 想要合作推广或内容互换，请邮件联系\n\n我们会认真阅读每一条反馈，并在能力范围内持续改进。\n\n---\n\n*AI 科技前沿 — 与你共同成长*",
+    },
+    {
+      id: "privacy",
+      title: "隐私政策",
+      navLabel: "隐私政策",
+      updatedAt: "2026-08-16",
+      content: "## 隐私政策\n\n本政策说明 AI 科技前沿（以下简称「本站」）如何收集、使用和保护您的信息。\n\n### 信息收集\n\n本站在您使用过程中可能收集以下信息：\n\n- **社区注册信息**：当您加入学习社区时，我们会收集您的昵称和邮箱（邮箱不公开展示）\n- **互动数据**：您在社区中的点赞、评论等互动行为\n- **访问数据**：通过 Cloudflare 分析获取的匿名访问统计（IP 地址、访问页面、设备类型等），用于改善网站体验\n\n### 信息使用\n\n收集的信息仅用于以下目的：\n\n- 提供社区互动功能（评论审核、点赞去重）\n- 改善网站内容和用户体验\n- 防止垃圾信息和恶意行为\n\n我们**不会**将您的信息出售、出租或分享给任何第三方。\n\n### Cookie 与本地存储\n\n本站使用以下技术来提升体验：\n\n- **Service Worker**：用于离线缓存和 PWA 功能，不涉及个人数据\n- **localStorage**：存储主题偏好、点赞记录等本地状态，不上传服务器\n- **Cloudflare Cookies**：用于安全防护和性能优化\n\n### 数据安全\n\n- 所有数据存储在 Cloudflare KV 中，传输过程使用 HTTPS 加密\n- 管理后台需要密码认证，token 24 小期自动过期\n- 评论需经管理员审核后才会公开展示\n\n### 您的权利\n\n- 您可以随时联系我们删除您的社区注册信息\n- 您可以要求查看或更正我们持有的您的信息\n- 浏览器设置中可以清除 Cookie 和 localStorage\n\n### 政策更新\n\n本隐私政策可能会不时更新。重大变更将在网站公告中通知。继续使用本站即表示您同意本政策的最新版本。\n\n---\n\n*最后更新：2026 年 8 月*\n\n*如有疑问，请通过「联系方式」页面与我们取得联系。*",
+    },
+  ],
   site_config: {
     stats: [
       { count: 1280, label: "技术文章" },
@@ -356,6 +386,18 @@ const SEED = {
       { type: "github", label: "GitHub", url: "https://github.com", icon: "" },
       { type: "wechat", label: "微信", url: "#", icon: "" },
       { type: "zhihu", label: "知乎", url: "https://www.zhihu.com", icon: "" },
+    ],
+    resourceLinks: [
+      { label: "入门指南", url: "#skills" },
+      { label: "进阶教程", url: "#skills" },
+      { label: "开源项目", url: "#community" },
+      { label: "论文解读", url: "#news" },
+    ],
+    aboutLinks: [
+      { label: "团队介绍", url: "page.html?id=team" },
+      { label: "投稿须知", url: "page.html?id=contribute" },
+      { label: "联系方式", url: "page.html?id=contact" },
+      { label: "隐私政策", url: "page.html?id=privacy" },
     ],
     charts: {
       trend: {
@@ -392,7 +434,7 @@ const SEED = {
 /* ===== 数组型内容类型 ===== */
 /* 注意：members / pending_comments / comments 不在此列，
    它们通过 /api/community/* 专用接口读写，避免隐私数据泄露到公开的 type=all */
-const ARRAY_TYPES = ["articles", "skills", "videos", "discussions", "contributors"];
+const ARRAY_TYPES = ["articles", "skills", "videos", "discussions", "contributors", "pages"];
 
 /* ===== 社区工具函数 ===== */
 function isValidName(name) {
@@ -508,16 +550,17 @@ export async function onRequest(context) {
     const type = url.searchParams.get("type") || "all";
 
     if (type === "all") {
-      const [articles, skills, videos, discussions, contributors, site_config] =
+      const [articles, skills, videos, discussions, contributors, pages, site_config] =
         await Promise.all([
           kvGetJSON(env, "articles", []),
           kvGetJSON(env, "skills", []),
           kvGetJSON(env, "videos", []),
           kvGetJSON(env, "discussions", []),
           kvGetJSON(env, "contributors", []),
+          kvGetJSON(env, "pages", []),
           kvGetJSON(env, "site_config", {}),
         ]);
-      return json({ articles, skills, videos, discussions, contributors, site_config });
+      return json({ articles, skills, videos, discussions, contributors, pages, site_config });
     }
 
     if (ARRAY_TYPES.includes(type)) {
@@ -563,6 +606,21 @@ export async function onRequest(context) {
     await env.CONTENT_KV.put("articles", JSON.stringify(articles));
 
     return json({ ...article, content: content });
+  }
+
+  /* ===== 单页面详情（公开） ===== */
+
+  /* GET /api/page?id=xxx — 获取页面内容（含正文 content） */
+  if (path === "page" && method === "GET") {
+    const id = url.searchParams.get("id");
+    if (!id) return json({ error: "缺少 id 参数" }, 400);
+
+    const pages = await kvGetJSON(env, "pages", []);
+    const page = pages.find(function (p) { return p.id === id; });
+    if (!page) return json({ error: "页面不存在" }, 404);
+
+    const content = await env.CONTENT_KV.get("page:" + id) || "";
+    return json({ ...page, content: content });
   }
 
   /* ===== 社区互动（公开，无需登录） ===== */
@@ -687,17 +745,17 @@ export async function onRequest(context) {
       const { type, data } = body;
       if (!type || !data) return json({ error: "缺少 type 或 data" }, 400);
 
-      /* articles / skills：正文分离存储（article:<id> / skill:<id>） */
-      if (type === "articles" || type === "skills") {
+      /* articles / skills / pages：正文分离存储（article:<id> / skill:<id> / page:<id>） */
+      if (type === "articles" || type === "skills" || type === "pages") {
         const items = await kvGetJSON(env, type, []);
-        const newId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        const newId = data.id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
         /* 分离 content 字段 */
         const { content, ...meta } = data;
         const newItem = { id: newId, ...meta };
         items.unshift(newItem);
         await env.CONTENT_KV.put(type, JSON.stringify(items));
         /* 正文单独存储 */
-        const prefix = type === "articles" ? "article:" : "skill:";
+        const prefix = type === "articles" ? "article:" : (type === "skills" ? "skill:" : "page:");
         if (content) {
           await env.CONTENT_KV.put(prefix + newId, content);
         }
@@ -728,8 +786,8 @@ export async function onRequest(context) {
         return json({ success: true, data: updated });
       }
 
-      /* articles / skills：正文分离更新 */
-      if (type === "articles" || type === "skills") {
+      /* articles / skills / pages：正文分离更新 */
+      if (type === "articles" || type === "skills" || type === "pages") {
         if (!id) return json({ error: "缺少 id" }, 400);
         const items = await kvGetJSON(env, type, []);
         const index = items.findIndex(function (item) { return item.id === id; });
@@ -739,7 +797,7 @@ export async function onRequest(context) {
         items[index] = { ...items[index], ...meta, id: items[index].id };
         await env.CONTENT_KV.put(type, JSON.stringify(items));
         /* 正文单独更新 */
-        const prefix = type === "articles" ? "article:" : "skill:";
+        const prefix = type === "articles" ? "article:" : (type === "skills" ? "skill:" : "page:");
         if (content !== undefined) {
           await env.CONTENT_KV.put(prefix + id, content);
         }
@@ -764,12 +822,13 @@ export async function onRequest(context) {
       const { type, id } = body;
       if (!type || !id) return json({ error: "缺少 type 或 id" }, 400);
 
-      if (type === "articles" || type === "skills") {
+      if (type === "articles" || type === "skills" || type === "pages") {
         const items = await kvGetJSON(env, type, []);
         const filtered = items.filter((item) => item.id !== id);
         await env.CONTENT_KV.put(type, JSON.stringify(filtered));
         /* 同时删除正文 */
-        const prefix = type === "articles" ? "article:" : "skill:";
+        const prefix = type === "articles" ? "article:" : (type === "skills" ? "skill:" : "page:");
+        await env.CONTENT_KV.delete(prefix + id);
         await env.CONTENT_KV.delete(prefix + id);
         return json({ success: true, remaining: filtered.length });
       }
@@ -874,9 +933,9 @@ export async function onRequest(context) {
 
     const results = {};
     for (const [key, value] of Object.entries(SEED)) {
-      if (key === "articles" || key === "skills") {
-        /* 文章/技能：分离存储元数据和正文 */
-        const prefix = key === "articles" ? "article:" : "skill:";
+      if (key === "articles" || key === "skills" || key === "pages") {
+        /* 文章/技能/页面：分离存储元数据和正文 */
+        const prefix = key === "articles" ? "article:" : (key === "skills" ? "skill:" : "page:");
         const metaData = value.map(function (a) {
           const { content, ...meta } = a;
           return meta;
