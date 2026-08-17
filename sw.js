@@ -3,7 +3,7 @@
  * 策略：核心资源预缓存 + 静态资源 stale-while-revalidate + API 网络优先
  * 每次发布新版请同步更新 CACHE_VERSION 与 PRECACHE 中的资源版本号
  */
-const CACHE_VERSION = "ai-tech-v20260816l";
+const CACHE_VERSION = "ai-tech-v20260817a";
 const PRECACHE = "precache-" + CACHE_VERSION;
 const RUNTIME = "runtime-" + CACHE_VERSION;
 
@@ -13,11 +13,11 @@ const PRECACHE_URLS = [
   "/index.html",
   "/article.html",
   "/page.html",
-  "/css/style.css?v=20260816l",
-  "/css/article.css?v=20260816l",
-  "/js/main.js?v=20260816l",
-  "/js/article.js?v=20260816l",
-  "/js/page.js?v=20260816l",
+  "/css/style.css?v=20260817a",
+  "/css/article.css?v=20260817a",
+  "/js/main.js?v=20260817a",
+  "/js/article.js?v=20260817a",
+  "/js/page.js?v=20260817a",
   "/manifest.json",
   "/favicon.svg",
   "/assets/og-cover.png",

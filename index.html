@@ -51,7 +51,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260816l">
+  <link rel="stylesheet" href="css/style.css?v=20260817a">
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
   <!-- Fuse.js 站内搜索 -->
@@ -523,6 +523,16 @@
           </div>
         </div>
       </div>
+
+      <!-- 更多视频（第 7 个起自动折叠，分页展示） -->
+      <div class="video-more" id="videoMore" hidden>
+        <div class="video-more__head">
+          <h3 class="video-more__title">更多视频</h3>
+          <span class="video-more__count" id="videoMoreCount"></span>
+        </div>
+        <div class="video-more__grid" id="videoMoreGrid"></div>
+        <div class="video-more__pager" id="videoMorePager"></div>
+      </div>
     </div>
   </section>
 
@@ -793,6 +803,6 @@
     </div>
   </div>
 
-  <script src="js/main.js?v=20260816l"></script>
+  <script src="js/main.js?v=20260817a"></script>
 </body>
 </html>
