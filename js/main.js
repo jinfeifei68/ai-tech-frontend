@@ -271,6 +271,8 @@
   function bindVideoItems() {
     videoItems = document.querySelectorAll(".video-item");
     videoItems.forEach(function (item) {
+      if (item.getAttribute("data-bound")) return; /* 防止分页重渲染后重复绑定 */
+      item.setAttribute("data-bound", "1");
       item.addEventListener("click", function () {
         playMainVideo({
           src: item.getAttribute("data-src"),
@@ -688,9 +690,83 @@
   }
 
   /* --- 渲染：视频专区 --- */
+  /* 首页布局：第 1 个为主视频，第 2-6 个进右侧列表（共 6 个）；
+     从第 7 个起折叠到下方"更多视频"网格，分页展示（每页 4 个，两列两行） */
+  var VIDEO_MAIN_COUNT = 1;   /* 主视频数量 */
+  var VIDEO_LIST_COUNT = 5;   /* 右侧列表数量 */
+  var VIDEO_MORE_PER_PAGE = 4;/* 下方网格每页数量 */
+  var videoMoreItems = [];    /* 第 7 个起的视频 */
+  var videoMorePage = 1;      /* 当前页码 */
+
+  function videoCardHTML(v) {
+    return '<div class="video-item" data-src="' + esc(v.src || "") + '" data-poster="' + esc(v.poster || "") + '" data-embed="' + esc(v.embed || "") + '">' +
+      '<div class="video-item__thumb" style="--img-url: url(\'' + esc(v.poster) + '\')">' +
+      '<span class="video-item__duration">' + esc(v.duration) + '</span>' +
+      '<span class="video-item__play">▶</span></div>' +
+      '<div class="video-item__info"><h4>' + esc(v.title) + '</h4><span>' + esc(v.views) + ' 观看</span></div></div>';
+  }
+
+  /* 渲染"更多视频"分页 */
+  function renderVideoMorePage() {
+    var gridEl = document.querySelector("#videoMoreGrid");
+    var pagerEl = document.querySelector("#videoMorePager");
+    var countEl = document.querySelector("#videoMoreCount");
+    var boxEl = document.querySelector("#videoMore");
+    if (!gridEl || !pagerEl || !boxEl) return;
+
+    if (!videoMoreItems.length) {
+      boxEl.hidden = true;
+      gridEl.innerHTML = "";
+      pagerEl.innerHTML = "";
+      return;
+    }
+    boxEl.hidden = false;
+
+    var totalPages = Math.ceil(videoMoreItems.length / VIDEO_MORE_PER_PAGE);
+    if (videoMorePage > totalPages) videoMorePage = totalPages;
+    if (videoMorePage < 1) videoMorePage = 1;
+
+    var start = (videoMorePage - 1) * VIDEO_MORE_PER_PAGE;
+    var pageItems = videoMoreItems.slice(start, start + VIDEO_MORE_PER_PAGE);
+    gridEl.innerHTML = pageItems.map(function (v) {
+      return videoCardHTML(v).replace('class="video-item"', 'class="video-item video-item--grid"');
+    }).join("");
+
+    if (countEl) countEl.textContent = "共 " + videoMoreItems.length + " 个视频";
+
+    /* 分页按钮 */
+    var pagerHTML = "";
+    if (totalPages > 1) {
+      pagerHTML = '<button type="button" class="video-pager__btn" data-page="' + (videoMorePage - 1) + '"' +
+        (videoMorePage <= 1 ? " disabled" : "") + '>← 上一页</button>' +
+        '<span class="video-pager__info">第 ' + videoMorePage + " / " + totalPages + ' 页</span>' +
+        '<button type="button" class="video-pager__btn" data-page="' + (videoMorePage + 1) + '"' +
+        (videoMorePage >= totalPages ? " disabled" : "") + '>下一页 →</button>';
+    }
+    pagerEl.innerHTML = pagerHTML;
+
+    /* 绑定分页按钮 */
+    pagerEl.querySelectorAll(".video-pager__btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        if (btn.disabled) return;
+        var p = parseInt(btn.getAttribute("data-page"), 10);
+        if (isNaN(p)) return;
+        videoMorePage = p;
+        renderVideoMorePage();
+        /* 翻页后回到"更多视频"区域顶部 */
+        var head = document.querySelector("#videoMore");
+        if (head) head.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    /* 重新绑定视频卡片点击（复用播放列表逻辑） */
+    bindVideoItems();
+  }
+
   function renderVideos(items) {
+    if (!items || !items.length) return;
     var main = items.find(function (v) { return v.isMain; }) || items[0];
-    var list = items.filter(function (v) { return !v.isMain; });
+    var rest = items.filter(function (v) { return v !== main; });
     if (main) {
       playMainVideo({
         src: main.src,
@@ -702,15 +778,16 @@
         views: main.views,
       });
     }
-    var listHTML = list.map(function (v) {
-      return '<div class="video-item" data-src="' + esc(v.src || "") + '" data-poster="' + esc(v.poster || "") + '" data-embed="' + esc(v.embed || "") + '">' +
-        '<div class="video-item__thumb" style="--img-url: url(\'' + esc(v.poster) + '\')">' +
-        '<span class="video-item__duration">' + esc(v.duration) + '</span>' +
-        '<span class="video-item__play">▶</span></div>' +
-        '<div class="video-item__info"><h4>' + esc(v.title) + '</h4><span>' + esc(v.views) + ' 观看</span></div></div>';
-    }).join("");
+    /* 第 2-6 个进右侧列表，最多 5 个，避免无限向下拉伸主视频 */
+    var sideList = rest.slice(0, VIDEO_LIST_COUNT);
+    var listHTML = sideList.map(videoCardHTML).join("");
     var listEl = document.querySelector(".video-list");
     if (listEl) listEl.innerHTML = listHTML;
+
+    /* 第 7 个起折叠到分页网格 */
+    videoMoreItems = rest.slice(VIDEO_LIST_COUNT);
+    videoMorePage = 1;
+    renderVideoMorePage();
   }
 
   /* --- 渲染：Hero 统计 --- */
@@ -734,6 +811,84 @@
     }
   }
 
+  /* --- 留言折叠分页：主页仅展示最新 1 条，其余进分页界面 --- */
+  var COMMENT_PAGE_SIZE = 10;       /* 展开区每页留言数 */
+  var discussionCommentsMap = {};   /* discussionId -> 该话题全部留言（按时间升序） */
+  var commentPageMap = {};          /* discussionId -> 当前页码 */
+
+  function commentItemHTML(c) {
+    return '<div class="discussion-comment">' +
+      '<div class="discussion-comment__head"><span class="discussion-comment__author">' + esc(c.nickname) + '</span>' +
+      '<span class="discussion-comment__time">' + esc(c.date) + '</span></div>' +
+      '<p class="discussion-comment__text">' + esc(c.content) + '</p></div>';
+  }
+
+  /* 按时间升序排列（旧 → 新），最新的一条在末尾 */
+  function sortCommentsAsc(list) {
+    return list.slice().sort(function (a, b) {
+      return String(a.date || "").localeCompare(String(b.date || ""));
+    });
+  }
+
+  /* 构建留言区块：最新 1 条 + "查看全部"折叠区（分页，最新在前） */
+  function buildCommentsBlock(discussionId, comments) {
+    if (!comments.length) return "";
+    discussionCommentsMap[discussionId] = sortCommentsAsc(comments);
+    commentPageMap[discussionId] = 1;
+    var latest = discussionCommentsMap[discussionId][discussionCommentsMap[discussionId].length - 1];
+    var latestHTML = '<div class="discussion-comments__latest">' +
+      '<span class="discussion-comments__badge">最新留言</span>' +
+      commentItemHTML(latest) + '</div>';
+    var more = "";
+    if (comments.length > 1) {
+      more = '<button type="button" class="comments-toggle" data-id="' + esc(discussionId) + '">📦 查看全部 ' + comments.length + ' 条留言 ▾</button>' +
+        '<div class="discussion-comments__all" data-id="' + esc(discussionId) + '" hidden>' +
+        '<div class="discussion-comments__list"></div>' +
+        '<div class="comments-pager"></div></div>';
+    }
+    return '<div class="discussion-comments">' + latestHTML + more + '</div>';
+  }
+
+  /* 渲染某个话题折叠区的指定页（留言最新在前） */
+  function renderCommentsPage(discussionId) {
+    var all = discussionCommentsMap[discussionId] || [];
+    var box = document.querySelector('.discussion-comments__all[data-id="' + discussionId + '"]');
+    if (!box || !all.length) return;
+    var totalPages = Math.ceil(all.length / COMMENT_PAGE_SIZE);
+    var page = commentPageMap[discussionId] || 1;
+    if (page > totalPages) page = totalPages;
+    if (page < 1) page = 1;
+    commentPageMap[discussionId] = page;
+
+    /* 折叠区按最新在前展示：反转时间顺序 */
+    var desc = all.slice().reverse();
+    var start = (page - 1) * COMMENT_PAGE_SIZE;
+    var listEl = box.querySelector(".discussion-comments__list");
+    var pagerEl = box.querySelector(".comments-pager");
+    if (listEl) {
+      listEl.innerHTML = desc.slice(start, start + COMMENT_PAGE_SIZE).map(commentItemHTML).join("");
+    }
+    if (pagerEl) {
+      pagerEl.innerHTML = totalPages > 1
+        ? '<button type="button" class="video-pager__btn" data-disc="' + esc(discussionId) + '" data-page="' + (page - 1) + '"' +
+          (page <= 1 ? " disabled" : "") + '>← 上一页</button>' +
+          '<span class="video-pager__info">第 ' + page + " / " + totalPages + ' 页</span>' +
+          '<button type="button" class="video-pager__btn" data-disc="' + esc(discussionId) + '" data-page="' + (page + 1) + '"' +
+          (page >= totalPages ? " disabled" : "") + '>下一页 →</button>'
+        : "";
+      pagerEl.querySelectorAll(".video-pager__btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          if (btn.disabled) return;
+          var p = parseInt(btn.getAttribute("data-page"), 10);
+          var did = btn.getAttribute("data-disc");
+          if (isNaN(p) || !did) return;
+          commentPageMap[did] = p;
+          renderCommentsPage(did);
+        });
+      });
+    }
+  }
+
   function renderDiscussions(items) {
     var liked = likedMap();
     var html = items.map(function (d) {
@@ -741,12 +896,8 @@
       var alt = d.avatarAlt ? " discussion__avatar--alt" : "";
       var isLiked = !!liked[d.id];
       var comments = communityComments.filter(function (c) { return c.discussionId === d.id; });
-      var commentsHTML = comments.map(function (c) {
-        return '<div class="discussion-comment">' +
-          '<div class="discussion-comment__head"><span class="discussion-comment__author">' + esc(c.nickname) + '</span>' +
-          '<span class="discussion-comment__time">' + esc(c.date) + '</span></div>' +
-          '<p class="discussion-comment__text">' + esc(c.content) + '</p></div>';
-      }).join("");
+      /* 主页只展示最新 1 条留言，其余折叠到分页界面 */
+      var commentsHTML = buildCommentsBlock(d.id, comments);
       return '<div class="discussion">' +
         '<div class="discussion__avatar' + alt + '">' + esc(d.avatar) + '</div>' +
         '<div class="discussion__content"><div class="discussion__head">' +
@@ -761,7 +912,7 @@
         '<span class="like-btn__icon">' + (isLiked ? "👍" : "👍") + '</span>' +
         '<span class="like-btn__count">' + esc(d.likes) + '</span></button>' +
         '<span>👁 ' + esc(d.views) + '</span></div>' +
-        (commentsHTML ? '<div class="discussion-comments">' + commentsHTML + '</div>' : "") +
+        commentsHTML +
         '<div class="discussion-reply">' +
         '<button type="button" class="discussion-reply__toggle" data-id="' + esc(d.id) + '">💬 我也说两句</button>' +
         '<form class="reply-form" data-id="' + esc(d.id) + '" style="display:none">' +
@@ -825,6 +976,25 @@
         var form = toggle.parentElement.querySelector(".reply-form");
         if (!form) return;
         form.style.display = form.style.display === "none" ? "block" : "none";
+      });
+    });
+
+    /* "查看全部留言" 展开/收起（首次展开时渲染第 1 页） */
+    document.querySelectorAll(".comments-toggle").forEach(function (btn) {
+      if (btn.getAttribute("data-bound")) return;
+      btn.setAttribute("data-bound", "1");
+      btn.addEventListener("click", function () {
+        var did = btn.getAttribute("data-id");
+        var box = document.querySelector('.discussion-comments__all[data-id="' + did + '"]');
+        if (!box) return;
+        var willShow = box.hidden;
+        box.hidden = !willShow;
+        if (willShow) {
+          renderCommentsPage(did);
+          btn.innerHTML = btn.innerHTML.replace("▾", "▴");
+        } else {
+          btn.innerHTML = btn.innerHTML.replace("▴", "▾");
+        }
       });
     });
 
