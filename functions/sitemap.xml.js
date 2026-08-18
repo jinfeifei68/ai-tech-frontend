@@ -10,6 +10,10 @@ const BASE = "https://ai.feige68.dpdns.org";
 // 固定页面（优先级高的排前面）
 const STATIC_PAGES = [
   { url: "/", priority: "1.0", changefreq: "daily" },
+  { url: "/news.html", priority: "0.7", changefreq: "daily" },
+  { url: "/skills.html", priority: "0.7", changefreq: "weekly" },
+  { url: "/videos.html", priority: "0.7", changefreq: "weekly" },
+  { url: "/community.html", priority: "0.6", changefreq: "weekly" },
   { url: "/article.html", priority: "0.6", changefreq: "weekly" },
   { url: "/page.html", priority: "0.5", changefreq: "monthly" },
 ];
@@ -64,14 +68,7 @@ function buildSitemap(articles, skills, videos, pages) {
     urls.push(`  <url><loc>${u}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
   });
 
-  // 视频专区（锚点定位首页区块）
-  if (videos && videos.length) {
-    const u = BASE + "/#videos";
-    if (!seen.has(u)) {
-      seen.add(u);
-      urls.push(`  <url><loc>${u}</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>`);
-    }
-  }
+  // 视频专区已有独立页面 /videos.html（在 STATIC_PAGES 中）
 
   // 内容页面（团队介绍/投稿须知/联系方式/隐私政策等）
   (pages || []).forEach((p) => {
