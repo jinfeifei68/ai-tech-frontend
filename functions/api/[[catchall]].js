@@ -923,6 +923,43 @@ export async function onRequest(context) {
     return json({ success: true, remaining: filtered.length });
   }
 
+  /* ===== 排序（需认证） ===== */
+
+  /* POST /api/reorder — 按 ids 顺序重排数组内容（articles/skills/videos/discussions 等）
+   * body: { type: "articles", ids: ["id3", "id1", "id2"] }
+   * 前台展示顺序即数组顺序，重排后立即生效 */
+  if (path === "reorder" && method === "POST") {
+    if (!(await verifyAuth(request, env))) {
+      return json({ error: "未授权，请先登录" }, 401);
+    }
+    let body;
+    try { body = await request.json(); } catch { return json({ error: "请求格式错误" }, 400); }
+    const type = (body.type || "").trim();
+    const ids = Array.isArray(body.ids) ? body.ids.map(String) : null;
+    if (!ARRAY_TYPES.includes(type)) return json({ error: "该类型不支持排序: " + type }, 400);
+    if (!ids || !ids.length) return json({ error: "缺少 ids 列表" }, 400);
+
+    const items = await kvGetJSON(env, type, []);
+    const byId = {};
+    items.forEach(function (item) { byId[item.id] = item; });
+
+    const reordered = [];
+    const seenIds = {};
+    ids.forEach(function (id) {
+      if (byId[id] && !seenIds[id]) {
+        reordered.push(byId[id]);
+        seenIds[id] = true;
+      }
+    });
+    /* 兜底：ids 之外的条目按原顺序追加，避免数据丢失 */
+    items.forEach(function (item) {
+      if (!seenIds[item.id]) reordered.push(item);
+    });
+
+    await env.CONTENT_KV.put(type, JSON.stringify(reordered));
+    return json({ success: true, count: reordered.length });
+  }
+
   /* ===== 初始化种子数据 ===== */
 
   /* POST /api/init — 初始化（需认证） */
