@@ -482,6 +482,18 @@
   color: var(--accent-cyan);
 }
 
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: var(--border-color);
+  color: var(--text-tertiary);
+}
+
+.icon-btn:disabled:hover {
+  border-color: var(--border-color);
+  color: var(--text-tertiary);
+}
+
 .icon-btn--danger:hover {
   border-color: var(--accent-pink);
   color: var(--accent-pink);

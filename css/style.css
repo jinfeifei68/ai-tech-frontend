@@ -1147,6 +1147,76 @@ input {
   color: var(--text-tertiary);
 }
 
+/* ===== 主页视频区"查看更多"按钮 ===== */
+.videos__more-btn {
+  text-align: center;
+  margin-top: 28px;
+}
+
+/* ===== 视频列表独立页（videos.html） ===== */
+.videos-page__main {
+  max-width: 900px;
+  margin: 0 auto 40px;
+}
+
+.videos-page__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.videos-page__head h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.videos-page__count {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+}
+
+.videos-page__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* 当前正在播放的视频高亮 */
+.video-item--grid.is-active {
+  border-color: #00d4ff;
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.25);
+}
+
+.videos-page__pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.videos-page__empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-tertiary);
+  font-size: 0.95rem;
+}
+
+/* 子页面空态（要闻/技能/社区列表） */
+.news__empty,
+.skills__empty,
+.community__empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-tertiary);
+  font-size: 0.95rem;
+  grid-column: 1 / -1;
+}
+
 /* ========================================
    数据可视化
    ======================================== */
@@ -1978,6 +2048,15 @@ input {
   .video-more__grid {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .videos-page__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .videos-page__main {
+    margin-bottom: 28px;
   }
 
   .video-more__pager {
