@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI 科技前沿 — 学习交流社区，提出问题、分享见解、结识同行，在交流中共同成长">
+  <meta name="keywords" content="AI社区,AI讨论,AI问答,学习社区,大模型,RAG,微调">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AI科技前沿">
+  <link rel="canonical" href="https://ai.feige68.dpdns.org/community.html">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon-180.png">
+  <link rel="manifest" href="/manifest.json">
+
+  <meta property="og:site_name" content="AI 科技前沿">
+  <meta property="og:title" content="学习交流社区 | AI 科技前沿">
+  <meta property="og:description" content="提出问题、分享见解、结识同行 — 在交流中共同成长">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ai.feige68.dpdns.org/community.html">
+  <meta property="og:image" content="https://ai.feige68.dpdns.org/assets/og-cover.png">
+  <meta property="og:locale" content="zh_CN">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="学习交流社区 | AI 科技前沿">
+  <meta name="twitter:description" content="提出问题、分享见解、结识同行 — 在交流中共同成长">
+  <meta name="twitter:image" content="https://ai.feige68.dpdns.org/assets/og-cover.png">
+
+  <title>学习交流社区 | AI 科技前沿</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260819a">
+  <link rel="stylesheet" href="css/article.css?v=20260819a">
+</head>
+<body>
+
+  <!-- ===== 顶部导航 ===== -->
+  <header class="header" id="header">
+    <div class="container header__inner">
+      <a href="/" class="logo" aria-label="返回首页">
+        <span class="logo__icon" id="siteLogoIcon">
+          <svg viewBox="0 0 32 32" width="32" height="32" fill="none" aria-hidden="true">
+            <rect x="2" y="2" width="28" height="28" rx="8" stroke="url(#logoGrad)" stroke-width="2"/>
+            <path d="M10 12c0-2 2-4 6-4s6 2 6 4-2 3-4 4-4 2-4 4" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="16" cy="24" r="1.5" fill="url(#logoGrad)"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                <stop stop-color="#00d4ff"/>
+                <stop offset="1" stop-color="#7c4dff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </span>
+        <img class="logo__img" id="siteLogoImg" alt="站点 Logo" style="display:none;height:34px;width:auto;border-radius:6px">
+        <span class="logo__text" id="siteLogoText">AI<span class="logo__accent">科技前沿</span></span>
+      </a>
+
+      <nav class="nav" id="nav" aria-label="主导航">
+        <a href="/#news" class="nav__link">AI 要闻</a>
+        <a href="/#skills" class="nav__link">技能分享</a>
+        <a href="videos.html" class="nav__link">视频专区</a>
+        <a href="/#charts" class="nav__link">数据洞察</a>
+        <a href="/#community" class="nav__link nav__link--active">学习社区</a>
+      </nav>
+
+      <div class="header__actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="切换明暗主题" title="切换主题">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button class="btn btn--ghost header__menu-btn" id="menuBtn" aria-label="打开菜单" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== 面包屑 ===== -->
+  <div class="article-breadcrumb">
+    <div class="container">
+      <a href="/">首页</a>
+      <span class="article-breadcrumb__sep">/</span>
+      <span>学习社区</span>
+    </div>
+  </div>
+
+  <!-- ===== 学习交流社区 ===== -->
+  <section class="section section--alt" id="community">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__tag">COMMUNITY</span>
+        <h2 class="section__title">学习交流社区</h2>
+        <p class="section__subtitle" id="descCommunity">提出问题、分享见解、结识同行 — 在交流中共同成长</p>
+      </div>
+
+      <div class="community__layout">
+        <!-- 全部讨论 -->
+        <div class="community__main">
+          <h3 class="community__sub-title">💬 全部讨论</h3>
+          <div id="discussionList">
+            <div class="community__empty">正在加载讨论...</div>
+          </div>
+          <div class="videos-page__pager" id="communityPager"></div>
+        </div>
+
+        <!-- 侧边栏 -->
+        <aside class="community__sidebar">
+          <div class="join-card">
+            <h3>加入社区</h3>
+            <p>注册即可参与讨论、收藏文章、跟踪学习进度</p>
+            <form class="join-form" onsubmit="return false">
+              <input type="text" placeholder="你的昵称" aria-label="昵称" required>
+              <input type="email" placeholder="邮箱地址" aria-label="邮箱" required>
+              <button type="submit" class="btn btn--primary btn--block">立即加入</button>
+            </form>
+            <p class="join-card__note">已有账号？<a href="#">登录</a></p>
+          </div>
+
+          <div class="contributor-card">
+            <h3>🏆 本周贡献者</h3>
+            <ul class="contributor-list" id="contributorList">
+              <li><span class="contributor-list__rank">1</span><span class="contributor-list__avatar">王</span><span class="contributor-list__name">王研究员</span><span class="contributor-list__score">2,840</span></li>
+              <li><span class="contributor-list__rank">2</span><span class="contributor-list__avatar">李</span><span class="contributor-list__name">李工程师</span><span class="contributor-list__score">2,120</span></li>
+              <li><span class="contributor-list__rank">3</span><span class="contributor-list__avatar">陈</span><span class="contributor-list__name">陈博士</span><span class="contributor-list__score">1,860</span></li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 页脚 ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__col footer__col--brand">
+          <a href="/" class="logo logo--footer">
+            <span class="logo__text" id="footerLogoText">AI<span class="logo__accent">科技前沿</span></span>
+          </a>
+          <p class="footer__desc" id="footerDescText">聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区。与万千开发者一起，拥抱 AI 时代。</p>
+          <div class="footer__social" id="footerSocial">
+            <a href="#" aria-label="GitHub" class="footer__social-link">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            </a>
+            <a href="#" aria-label="微信" class="footer__social-link">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.902-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 0 1 .598.082l1.584.926a.272.272 0 0 0 .14.045c.134 0 .24-.111.24-.247 0-.06-.024-.12-.04-.177l-.326-1.232a.582.582 0 0 1-.023-.156.49.49 0 0 1 .201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-3.04-5.91-6.81-6.084l-.252-.038zm-3.373 3.379c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.969-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.969-.982z"/></svg>
+            </a>
+            <a href="#" aria-label="知乎" class="footer__social-link">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M5.721 0C2.251 0 0 2.25 0 5.719V18.28C0 21.751 2.252 24 5.721 24h12.56C21.751 24 24 21.75 24 18.281V5.72C24 2.249 21.75 0 18.281 0H5.72zm1.964 4.078c-.271.73-.5 1.434-.686 2.111h4.878v2.092h-1.53v8.548h1.395l.262 2.094-3.49-.014c.375.545.802 1.246 1.283 2.103l-2.246.884a30.7 30.7 0 0 0-1.566-2.83l1.766-.686H4.392v-8.9h2.526c.207-.738.392-1.52.553-2.342l2.214.45zm6.12 2.076h6.077v9.176h-2.39v-1.258h-1.375v1.258h-2.312V6.155zm2.312 2.094v3.726h1.375V8.249h-1.375zM7.956 7.926l-2.146.712c-.178.74-.392 1.453-.644 2.135h2.43v3.764H4.794v-4.375l2.168-.719.994-1.517zm12.055 7.897c.421.547.92 1.222 1.498 2.022l-1.944 1.005c-.399-.684-.828-1.364-1.283-2.04l1.729-.987z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer__col">
+          <h4 class="footer__title">内容导航</h4>
+          <ul class="footer__links">
+            <li><a href="/#news">AI 要闻</a></li>
+            <li><a href="/#skills">技能分享</a></li>
+            <li><a href="videos.html">视频教程</a></li>
+            <li><a href="/#charts">数据洞察</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h4 class="footer__title">学习资源</h4>
+          <ul class="footer__links" id="footerResourceLinks">
+            <li><a href="/#skills">入门指南</a></li>
+            <li><a href="/#skills">进阶教程</a></li>
+            <li><a href="/#community">开源项目</a></li>
+            <li><a href="/#news">论文解读</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h4 class="footer__title">关于我们</h4>
+          <ul class="footer__links" id="footerAboutLinks">
+            <li><a href="page.html?id=team">团队介绍</a></li>
+            <li><a href="page.html?id=contribute">投稿须知</a></li>
+            <li><a href="page.html?id=contact">联系方式</a></li>
+            <li><a href="page.html?id=privacy">隐私政策</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer__bottom">
+        <p id="footerCopyText">© 2026 AI科技前沿 · 共同学习，共同成长</p>
+        <p class="footer__built" id="footerBuiltText">Built with ❤️ for AI Learners</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 返回顶部 -->
+  <button class="back-to-top" id="backToTop" aria-label="返回顶部">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <script src="js/site-footer.js?v=20260819a"></script>
+  <script src="js/community.js?v=20260819a"></script>
+</body>
+</html>

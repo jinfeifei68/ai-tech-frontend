@@ -1,142 +1,133 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AI 科技要闻与知识分享平台，聚焦人工智能前沿动态与实战技能">
-  <meta name="keywords" content="AI,人工智能,科技要闻,技能分享,知识社区">
-  <meta name="author" content="AI 科技前沿">
+  <meta name="description" content="AI 科技前沿 — AI 要闻速递，第一时间获取人工智能领域的重要新闻与技术突破">
+  <meta name="keywords" content="AI要闻,AI新闻,人工智能,大模型,AI科技">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#0b1020">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AI科技前沿">
-  <link rel="canonical" href="https://ai.feige68.dpdns.org/article.html">
+  <link rel="canonical" href="https://ai.feige68.dpdns.org/news.html">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="apple-touch-icon" href="/icons/icon-180.png">
   <link rel="manifest" href="/manifest.json">
 
-  <!-- Open Graph / 社交分享卡片（JS 加载后会动态覆盖） -->
   <meta property="og:site_name" content="AI 科技前沿">
-  <meta property="og:title" content="AI 科技前沿">
-  <meta property="og:description" content="聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区">
-  <meta property="og:type" content="article">
-  <meta property="og:url" content="https://ai.feige68.dpdns.org/article.html">
+  <meta property="og:title" content="AI 要闻速递 | AI 科技前沿">
+  <meta property="og:description" content="第一时间获取人工智能领域的重要新闻与技术突破">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ai.feige68.dpdns.org/news.html">
   <meta property="og:image" content="https://ai.feige68.dpdns.org/assets/og-cover.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
   <meta property="og:locale" content="zh_CN">
 
-  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="AI 科技前沿">
-  <meta name="twitter:description" content="聚焦人工智能前沿动态，分享实用技术技能，打造开放学习社区">
+  <meta name="twitter:title" content="AI 要闻速递 | AI 科技前沿">
+  <meta name="twitter:description" content="第一时间获取人工智能领域的重要新闻与技术突破">
   <meta name="twitter:image" content="https://ai.feige68.dpdns.org/assets/og-cover.png">
 
-  <title>AI 科技前沿</title>
+  <title>AI 要闻速递 | AI 科技前沿</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=20260819a">
   <link rel="stylesheet" href="css/article.css?v=20260819a">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- ===== 顶部导航 ===== -->
   <header class="header" id="header">
     <div class="container header__inner">
-      <a href="/" class="header__logo">
-        <span class="header__logo-icon" id="siteLogoIcon">⚡</span>
-        <img id="siteLogoImg" alt="站点 Logo" style="display:none;height:30px;width:auto;border-radius:6px">
-        <span class="header__logo-text" id="siteLogoText">AI<em>科技前沿</em></span>
+      <a href="/" class="logo" aria-label="返回首页">
+        <span class="logo__icon" id="siteLogoIcon">
+          <svg viewBox="0 0 32 32" width="32" height="32" fill="none" aria-hidden="true">
+            <rect x="2" y="2" width="28" height="28" rx="8" stroke="url(#logoGrad)" stroke-width="2"/>
+            <path d="M10 12c0-2 2-4 6-4s6 2 6 4-2 3-4 4-4 2-4 4" stroke="url(#logoGrad)" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="16" cy="24" r="1.5" fill="url(#logoGrad)"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                <stop stop-color="#00d4ff"/>
+                <stop offset="1" stop-color="#7c4dff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </span>
+        <img class="logo__img" id="siteLogoImg" alt="站点 Logo" style="display:none;height:34px;width:auto;border-radius:6px">
+        <span class="logo__text" id="siteLogoText">AI<span class="logo__accent">科技前沿</span></span>
       </a>
-      <nav class="nav" id="nav">
-        <a href="/#news" class="nav__link">AI 要闻</a>
+
+      <nav class="nav" id="nav" aria-label="主导航">
+        <a href="/#news" class="nav__link nav__link--active">AI 要闻</a>
         <a href="/#skills" class="nav__link">技能分享</a>
-        <a href="/#videos" class="nav__link">视频教程</a>
-        <a href="/#data" class="nav__link">数据洞察</a>
+        <a href="videos.html" class="nav__link">视频专区</a>
+        <a href="/#charts" class="nav__link">数据洞察</a>
         <a href="/#community" class="nav__link">学习社区</a>
       </nav>
-      <button class="header__toggle" id="navToggle" aria-label="菜单">
-        <span></span><span></span><span></span>
-      </button>
+
+      <div class="header__actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="切换明暗主题" title="切换主题">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+        <button class="btn btn--ghost header__menu-btn" id="menuBtn" aria-label="打开菜单" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <!-- Article Loading -->
-  <div id="articleLoading" class="article-loading">
-    <div class="article-loading__spinner"></div>
-    <p>正在加载文章...</p>
+  <!-- ===== 面包屑 ===== -->
+  <div class="article-breadcrumb">
+    <div class="container">
+      <a href="/">首页</a>
+      <span class="article-breadcrumb__sep">/</span>
+      <span>AI 要闻</span>
+    </div>
   </div>
 
-  <!-- Article Error -->
-  <div id="articleError" class="article-error" style="display:none">
-    <div class="article-error__icon">📄</div>
-    <h2 id="errorMsg">文章不存在</h2>
-    <p>该文章可能已被删除或链接有误</p>
-    <a href="/" class="btn btn--primary">返回首页</a>
-  </div>
-
-  <!-- Article Content -->
-  <article id="articleContent" class="article-detail" style="display:none">
-    <!-- Breadcrumb -->
-    <div class="article-breadcrumb">
-      <div class="container">
-        <a href="/">首页</a>
-        <span class="article-breadcrumb__sep">/</span>
-        <a href="/#news" id="breadcrumbCat">AI 要闻</a>
-        <span class="article-breadcrumb__sep">/</span>
-        <span id="breadcrumbTitle">文章详情</span>
+  <!-- ===== AI 要闻列表 ===== -->
+  <section class="section" id="news">
+    <div class="container">
+      <div class="section__header">
+        <span class="section__tag">AI NEWS</span>
+        <h2 class="section__title">AI 要闻速递</h2>
+        <p class="section__subtitle" id="descNews">第一时间获取人工智能领域的重要新闻与技术突破</p>
       </div>
+
+      <!-- 分类筛选 -->
+      <div class="news__filters" id="newsFilters">
+        <button class="filter-btn filter-btn--active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="model">大模型</button>
+        <button class="filter-btn" data-filter="application">应用落地</button>
+        <button class="filter-btn" data-filter="research">学术研究</button>
+        <button class="filter-btn" data-filter="industry">产业动态</button>
+      </div>
+
+      <!-- 文章网格 -->
+      <div class="news__grid" id="newsGrid">
+        <div class="news__empty" id="newsEmpty">正在加载要闻...</div>
+      </div>
+
+      <!-- 分页 -->
+      <div class="videos-page__pager" id="newsPager"></div>
     </div>
+  </section>
 
-    <!-- Article Header -->
-    <header class="article-header">
-      <div class="container">
-        <div class="article-header__cats">
-          <span class="article-header__cat" id="articleCat">大模型</span>
-          <span class="article-header__badge" id="articleBadge"></span>
-        </div>
-        <h1 class="article-header__title" id="articleTitle"></h1>
-        <p class="article-header__excerpt" id="articleExcerpt"></p>
-        <div class="article-header__meta">
-          <span class="article-header__date" id="articleDate"></span>
-          <span class="article-header__reads" id="articleReads"></span>
-          <button class="article-header__share" id="shareBtn" title="分享文章">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            分享
-          </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- Hero Image -->
-    <div class="article-hero" id="articleHero"></div>
-
-    <!-- Article Body -->
-    <div class="article-body-wrapper">
-      <div class="container">
-        <div class="article-body" id="articleBody"></div>
-
-        <!-- Article Footer -->
-        <div class="article-footer">
-          <a href="/" class="btn btn--outline">← 返回首页</a>
-          <a href="/#news" class="btn btn--primary" id="moreBtn">更多要闻 →</a>
-        </div>
-
-        <!-- Related Articles -->
-        <section class="article-related" id="articleRelated" style="display:none">
-          <h3 class="article-related__title">相关文章</h3>
-          <div class="article-related__grid" id="relatedGrid"></div>
-        </section>
-      </div>
-    </div>
-  </article>
-
-  <!-- Back to Top -->
-  <button class="back-to-top" id="backToTop" title="回到顶部">↑</button>
-
-  <!-- Footer -->
+  <!-- ===== 页脚 ===== -->
   <footer class="footer">
     <div class="container">
       <div class="footer__grid">
@@ -196,7 +187,12 @@
     </div>
   </footer>
 
+  <!-- 返回顶部 -->
+  <button class="back-to-top" id="backToTop" aria-label="返回顶部">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
   <script src="js/site-footer.js?v=20260819a"></script>
-  <script src="js/article.js?v=20260819a"></script>
+  <script src="js/news.js?v=20260819a"></script>
 </body>
 </html>
