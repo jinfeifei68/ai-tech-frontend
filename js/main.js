@@ -219,9 +219,14 @@
     return embedFrame;
   }
 
-  /* 统一播放入口：item = { src, poster, embed, title, duration, date, views } */
-  function playMainVideo(item) {
+  /* 统一播放入口：item = { src, poster, embed, title, duration, date, views }
+   * autoplay=false 时只加载视频源，不自动播放（用于页面打开时的主视频占位） */
+  function playMainVideo(item, autoplay) {
     if (!item) return;
+    if (autoplay === false) {
+      showMainVideoStandby(item);
+      return;
+    }
     var frame = ensureEmbedFrame();
 
     if (item.embed) {
@@ -257,6 +262,32 @@
       }
     }
 
+    /* 更新覆盖层信息 */
+    if (mainTitle && item.title) mainTitle.textContent = item.title;
+    var meta = document.querySelector(".video-main__meta");
+    if (meta) {
+      meta.innerHTML = "<span>▶ " + esc(item.duration || "") + "</span>" +
+        (item.date ? "<span>📅 " + esc(item.date) + "</span>" : "") +
+        "<span>👁 " + esc(item.views || "0") + " 观看</span>";
+    }
+  }
+
+  /* 主视频待机模式（不自动播放）：
+   * - mp4：设置封面与视频源，等用户点击播放按钮
+   * - 嵌入（B站等）：不加载 iframe，显示「点击播放」遮罩，点击后才加载 */
+  function showMainVideoStandby(item) {
+    if (!item) return;
+    var frame = ensureEmbedFrame();
+    if (frame) {
+      frame.src = "";
+      frame.style.display = "none";
+    }
+    if (mainVideo) {
+      mainVideo.style.display = "";
+      mainVideo.src = item.src || "";
+      mainVideo.poster = item.poster || "";
+      mainVideo.load();
+    }
     /* 更新覆盖层信息 */
     if (mainTitle && item.title) mainTitle.textContent = item.title;
     var meta = document.querySelector(".video-main__meta");
@@ -639,8 +670,11 @@
   }
 
   /* --- 渲染：要闻卡片 --- */
+  /* 主页只展示最新 8 篇，第 9 篇起通过「查看全部要闻」进入 news.html 独立页 */
+  var NEWS_MAIN_COUNT = 8;
+
   function renderNewsCards(items) {
-    var html = items.map(function (a) {
+    var html = items.slice(0, NEWS_MAIN_COUNT).map(function (a) {
       var feat = a.featured ? " news-card--featured" : "";
       var bc = a.badgeType === "hot" ? " news-card__badge--hot" : a.badgeType === "new" ? " news-card__badge--new" : "";
       return '<article class="news-card' + feat + ' reveal reveal--visible" data-category="' + esc(a.category) + '" data-id="' + esc(a.id) + '" style="cursor:pointer">' +
@@ -660,8 +694,11 @@
   }
 
   /* --- 渲染：技能卡片（可点击进入教程详情页） --- */
+  /* 主页只展示现有 6 个，新增技能通过「查看更多技能」进入 skills.html 独立页 */
+  var SKILL_MAIN_COUNT = 6;
+
   function renderSkillCards(items) {
-    var html = items.map(function (s) {
+    var html = items.slice(0, SKILL_MAIN_COUNT).map(function (s) {
       var tags = (s.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join("");
       var link = "article.html?type=skill&id=" + encodeURIComponent(s.id);
       return '<div class="skill-card skill-card--clickable reveal reveal--visible" data-path="' + esc(s.path) + '" data-id="' + esc(s.id) + '" data-link="' + link + '">' +
@@ -690,13 +727,10 @@
   }
 
   /* --- 渲染：视频专区 --- */
-  /* 首页布局：第 1 个为主视频，第 2-6 个进右侧列表（共 6 个）；
-     从第 7 个起折叠到下方"更多视频"网格，分页展示（每页 4 个，两列两行） */
+  /* 首页布局：第 1 个为主视频，第 2-5 个进右侧列表（共 5 个）；
+     其余视频通过"查看更多"按钮跳转 videos.html 独立页面 */
   var VIDEO_MAIN_COUNT = 1;   /* 主视频数量 */
-  var VIDEO_LIST_COUNT = 5;   /* 右侧列表数量 */
-  var VIDEO_MORE_PER_PAGE = 4;/* 下方网格每页数量 */
-  var videoMoreItems = [];    /* 第 7 个起的视频 */
-  var videoMorePage = 1;      /* 当前页码 */
+  var VIDEO_LIST_COUNT = 4;   /* 右侧列表数量（主页展示上限） */
 
   function videoCardHTML(v) {
     return '<div class="video-item" data-src="' + esc(v.src || "") + '" data-poster="' + esc(v.poster || "") + '" data-embed="' + esc(v.embed || "") + '">' +
@@ -706,69 +740,13 @@
       '<div class="video-item__info"><h4>' + esc(v.title) + '</h4><span>' + esc(v.views) + ' 观看</span></div></div>';
   }
 
-  /* 渲染"更多视频"分页 */
-  function renderVideoMorePage() {
-    var gridEl = document.querySelector("#videoMoreGrid");
-    var pagerEl = document.querySelector("#videoMorePager");
-    var countEl = document.querySelector("#videoMoreCount");
-    var boxEl = document.querySelector("#videoMore");
-    if (!gridEl || !pagerEl || !boxEl) return;
-
-    if (!videoMoreItems.length) {
-      boxEl.hidden = true;
-      gridEl.innerHTML = "";
-      pagerEl.innerHTML = "";
-      return;
-    }
-    boxEl.hidden = false;
-
-    var totalPages = Math.ceil(videoMoreItems.length / VIDEO_MORE_PER_PAGE);
-    if (videoMorePage > totalPages) videoMorePage = totalPages;
-    if (videoMorePage < 1) videoMorePage = 1;
-
-    var start = (videoMorePage - 1) * VIDEO_MORE_PER_PAGE;
-    var pageItems = videoMoreItems.slice(start, start + VIDEO_MORE_PER_PAGE);
-    gridEl.innerHTML = pageItems.map(function (v) {
-      return videoCardHTML(v).replace('class="video-item"', 'class="video-item video-item--grid"');
-    }).join("");
-
-    if (countEl) countEl.textContent = "共 " + videoMoreItems.length + " 个视频";
-
-    /* 分页按钮 */
-    var pagerHTML = "";
-    if (totalPages > 1) {
-      pagerHTML = '<button type="button" class="video-pager__btn" data-page="' + (videoMorePage - 1) + '"' +
-        (videoMorePage <= 1 ? " disabled" : "") + '>← 上一页</button>' +
-        '<span class="video-pager__info">第 ' + videoMorePage + " / " + totalPages + ' 页</span>' +
-        '<button type="button" class="video-pager__btn" data-page="' + (videoMorePage + 1) + '"' +
-        (videoMorePage >= totalPages ? " disabled" : "") + '>下一页 →</button>';
-    }
-    pagerEl.innerHTML = pagerHTML;
-
-    /* 绑定分页按钮 */
-    pagerEl.querySelectorAll(".video-pager__btn").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        if (btn.disabled) return;
-        var p = parseInt(btn.getAttribute("data-page"), 10);
-        if (isNaN(p)) return;
-        videoMorePage = p;
-        renderVideoMorePage();
-        /* 翻页后回到"更多视频"区域顶部 */
-        var head = document.querySelector("#videoMore");
-        if (head) head.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    });
-
-    /* 重新绑定视频卡片点击（复用播放列表逻辑） */
-    bindVideoItems();
-  }
-
   function renderVideos(items) {
     if (!items || !items.length) return;
     var main = items.find(function (v) { return v.isMain; }) || items[0];
     var rest = items.filter(function (v) { return v !== main; });
     if (main) {
-      playMainVideo({
+      /* 首页不自动播放：仅设置封面与标题，用户点击列表项或播放按钮才播放 */
+      showMainVideoStandby({
         src: main.src,
         poster: main.poster,
         embed: main.embed || "",
@@ -778,16 +756,17 @@
         views: main.views,
       });
     }
-    /* 第 2-6 个进右侧列表，最多 5 个，避免无限向下拉伸主视频 */
+    /* 第 2-5 个进右侧列表，超出部分通过"查看更多"按钮跳转独立页面 */
     var sideList = rest.slice(0, VIDEO_LIST_COUNT);
     var listHTML = sideList.map(videoCardHTML).join("");
     var listEl = document.querySelector(".video-list");
     if (listEl) listEl.innerHTML = listHTML;
 
-    /* 第 7 个起折叠到分页网格 */
-    videoMoreItems = rest.slice(VIDEO_LIST_COUNT);
-    videoMorePage = 1;
-    renderVideoMorePage();
+    /* 更新"查看更多"按钮文案，显示视频总数 */
+    var moreBtnText = document.getElementById("videoMoreBtnText");
+    if (moreBtnText) {
+      moreBtnText.textContent = "查看全部 " + items.length + " 个视频";
+    }
   }
 
   /* --- 渲染：Hero 统计 --- */
@@ -891,7 +870,9 @@
 
   function renderDiscussions(items) {
     var liked = likedMap();
-    var html = items.map(function (d) {
+    /* 主页只展示最新 3 条讨论，其余通过「查看更多讨论」进入 community.html 独立页 */
+    var shown = items.slice(0, 3);
+    var html = shown.map(function (d) {
       var tags = (d.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join("");
       var alt = d.avatarAlt ? " discussion__avatar--alt" : "";
       var isLiked = !!liked[d.id];
@@ -924,10 +905,10 @@
     }).join("");
     var main = document.querySelector(".community__main");
     if (main) {
-      var moreBtn = main.querySelector(".community__more");
       var title = main.querySelector(".community__sub-title");
+      var total = items.length;
       main.innerHTML = (title ? title.outerHTML : '<h3 class="community__sub-title">🔥 热门讨论</h3>') + html +
-        '<a href="#" class="btn btn--outline community__more">查看更多讨论</a>';
+        '<a href="community.html" class="btn btn--outline community__more">查看全部 ' + total + ' 条讨论 →</a>';
     }
     bindCommunityEvents();
   }
@@ -1337,6 +1318,20 @@
       /* 重新绑定事件 */
       rebindContentEvents();
 
+      /* 更新各板块「查看更多」按钮文案（显示总数） */
+      var newsMoreBtnText = document.getElementById("newsMoreBtnText");
+      if (newsMoreBtnText && data.articles) {
+        newsMoreBtnText.textContent = "查看全部 " + data.articles.length + " 篇要闻";
+      }
+      var skillsMoreBtnText = document.getElementById("skillsMoreBtnText");
+      if (skillsMoreBtnText && data.skills) {
+        skillsMoreBtnText.textContent = "查看全部 " + data.skills.length + " 个技能";
+      }
+      var communityMoreBtnText = document.getElementById("communityMoreBtnText");
+      if (communityMoreBtnText && data.discussions) {
+        communityMoreBtnText.textContent = "查看全部 " + data.discussions.length + " 条讨论";
+      }
+
       /* 启动图片懒加载（含动态内容） */
       initLazyImages();
 
@@ -1409,7 +1404,7 @@
           title: v.title || "",
           summary: v.desc || v.description || "",
           category: "",
-          url: "/#videos"
+          url: "videos.html"
         });
       });
     }

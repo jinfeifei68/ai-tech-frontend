@@ -315,6 +315,8 @@
         <td>${escapeHtml(a.date)}</td>
         <td>${escapeHtml(a.reads)}</td>
         <td class="row-actions">
+          <button class="icon-btn" onclick="window.__admin.moveItem('articles', '${a.id}', -1)" title="上移" ${items.indexOf(a) === 0 ? "disabled" : ""}>⬆</button>
+          <button class="icon-btn" onclick="window.__admin.moveItem('articles', '${a.id}', 1)" title="下移" ${items.indexOf(a) === items.length - 1 ? "disabled" : ""}>⬇</button>
           <button class="icon-btn" onclick="window.__admin.editArticle('${a.id}')" title="编辑">✏</button>
           <button class="icon-btn icon-btn--danger" onclick="window.__admin.deleteArticle('${a.id}')" title="删除">🗑</button>
         </td>
@@ -513,6 +515,8 @@
         <td>${escapeHtml(pathLabel(s.path))}</td>
         <td>${escapeHtml(s.duration)}</td>
         <td class="row-actions">
+          <button class="icon-btn" onclick="window.__admin.moveItem('skills', '${s.id}', -1)" title="上移" ${items.indexOf(s) === 0 ? "disabled" : ""}>⬆</button>
+          <button class="icon-btn" onclick="window.__admin.moveItem('skills', '${s.id}', 1)" title="下移" ${items.indexOf(s) === items.length - 1 ? "disabled" : ""}>⬇</button>
           <button class="icon-btn" onclick="window.__admin.editSkill('${s.id}')" title="编辑">✏</button>
           <button class="icon-btn icon-btn--danger" onclick="window.__admin.deleteSkill('${s.id}')" title="删除">🗑</button>
         </td>
@@ -684,6 +688,8 @@
         <td>${escapeHtml(v.views)}</td>
         <td>${v.isMain ? '<span class="cell-badge cell-badge--new">主视频</span>' : '<span class="cell-badge">列表</span>'}</td>
         <td class="row-actions">
+          <button class="icon-btn" onclick="window.__admin.moveItem('videos', '${v.id}', -1)" title="上移" ${items.indexOf(v) === 0 ? "disabled" : ""}>⬆</button>
+          <button class="icon-btn" onclick="window.__admin.moveItem('videos', '${v.id}', 1)" title="下移" ${items.indexOf(v) === items.length - 1 ? "disabled" : ""}>⬇</button>
           <button class="icon-btn" onclick="window.__admin.editVideo('${v.id}')" title="编辑">✏</button>
           <button class="icon-btn icon-btn--danger" onclick="window.__admin.deleteVideo('${v.id}')" title="删除">🗑</button>
         </td>
@@ -797,6 +803,8 @@
         <td>💬${d.replies} 👍${d.likes}</td>
         <td>${escapeHtml(d.time)}</td>
         <td class="row-actions">
+          <button class="icon-btn" onclick="window.__admin.moveItem('discussions', '${d.id}', -1)" title="上移" ${items.indexOf(d) === 0 ? "disabled" : ""}>⬆</button>
+          <button class="icon-btn" onclick="window.__admin.moveItem('discussions', '${d.id}', 1)" title="下移" ${items.indexOf(d) === items.length - 1 ? "disabled" : ""}>⬇</button>
           <button class="icon-btn" onclick="window.__admin.editDiscussion('${d.id}')" title="编辑">✏</button>
           <button class="icon-btn icon-btn--danger" onclick="window.__admin.deleteDiscussion('${d.id}')" title="删除">🗑</button>
         </td>
@@ -908,6 +916,32 @@
         renderDiscussions();
       } catch (e) { toast(e.message, "error"); }
     });
+  }
+
+  /* ===== 排序：上移/下移（POST /api/reorder 持久化到 KV） ===== */
+  async function moveItem(type, id, direction) {
+    var items = contentData[type];
+    if (!Array.isArray(items) || items.length < 2) return;
+    var idx = items.findIndex(function (x) { return x.id === id; });
+    if (idx < 0) return;
+    var target = idx + direction;
+    if (target < 0 || target >= items.length) {
+      toast(direction < 0 ? "已经是第一条了" : "已经是最后一条了", "info");
+      return;
+    }
+    /* 本地交换，先让界面立即生效 */
+    var tmp = items[idx];
+    items[idx] = items[target];
+    items[target] = tmp;
+    var ids = items.map(function (x) { return x.id; });
+    try {
+      await api("/reorder", { method: "POST", body: JSON.stringify({ type: type, ids: ids }) });
+      toast("排序已保存", "success");
+    } catch (e) {
+      toast("排序保存失败: " + e.message, "error");
+      await loadAllContent();
+    }
+    renderSection(currentSection);
   }
 
   /* ===== 贡献者管理 ===== */
@@ -1711,6 +1745,7 @@
     deleteArticle: deleteArticle,
     previewContent: previewContent,
     backToEdit: backToEdit,
+    moveItem: moveItem,
     editSkill: editSkill,
     saveSkill: saveSkill,
     deleteSkill: deleteSkill,

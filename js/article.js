@@ -62,6 +62,9 @@
       if (cfg.fontSize && FONT_SIZE_MAP.hasOwnProperty(cfg.fontSize)) {
         document.documentElement.style.fontSize = FONT_SIZE_MAP[cfg.fontSize];
       }
+
+      /* 页脚品牌同步（与首页保持一致） */
+      if (window.__footerBrand) window.__footerBrand.applyFooterBranding(cfg);
     } catch (e) { /* 静默失败，保留默认外观 */ }
   }
 
