@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>部署上线指南 — AI科技前沿 · 学习交流</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e1a; --bg2: #111827; --bg3: #1a2332;
+      --border: rgba(255,255,255,0.08);
+      --text: #f0f4ff; --text2: #a0aec0; --text3: #6b7280;
+      --cyan: #00d4ff; --purple: #7c4dff; --green: #00e676;
+      --grad: linear-gradient(135deg, #00d4ff, #7c4dff);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: "Noto Sans SC", sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.7; padding: 0;
+    }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+    h1 { font-size: 2rem; margin-bottom: 8px; }
+    h1 span { background: var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+    .sub { color: var(--text2); margin-bottom: 40px; font-size: 1rem; }
+    h2 { font-size: 1.35rem; margin: 40px 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 1.05rem; margin: 24px 0 12px; color: var(--cyan); }
+    p { color: var(--text2); margin-bottom: 12px; }
+    .step { background: var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px 24px; margin-bottom:16px; }
+    .step__num { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:var(--grad); color:#fff; font-size:0.85rem; font-weight:600; margin-right:10px; vertical-align:middle; }
+    .step__title { font-size:1rem; font-weight:600; vertical-align:middle; }
+    code { font-family:"JetBrains Mono",monospace; font-size:0.85rem; background:var(--bg3); padding:2px 8px; border-radius:4px; color:var(--cyan); }
+    pre { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:16px 20px; overflow-x:auto; margin:12px 0; }
+    pre code { background:none; padding:0; color:var(--text); font-size:0.82rem; line-height:1.6; }
+    .tip { background:rgba(0,212,255,0.08); border:1px solid rgba(0,212,255,0.2); border-radius:8px; padding:12px 16px; margin:12px 0; font-size:0.88rem; color:var(--cyan); }
+    .warn { background:rgba(255,145,0,0.08); border:1px solid rgba(255,145,0,0.2); border-radius:8px; padding:12px 16px; margin:12px 0; font-size:0.88rem; color:#ff9100; }
+    .platform-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:20px 0; }
+    .platform-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px; text-align:center; transition:border-color .2s; }
+    .platform-card:hover { border-color: var(--cyan); }
+    .platform-card h4 { font-size:1rem; margin-bottom:6px; }
+    .platform-card p { font-size:0.8rem; color:var(--text3); }
+    .platform-card .tag { font-size:0.7rem; padding:2px 8px; border-radius:4px; background:var(--bg3); color:var(--green); margin-top:8px; display:inline-block; }
+    ul { padding-left:20px; margin-bottom:12px; }
+    ul li { color:var(--text2); margin-bottom:6px; font-size:0.9rem; }
+    ul li::marker { color:var(--cyan); }
+    .checklist { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px 24px; margin:16px 0; }
+    .checklist label { display:flex; align-items:center; gap:8px; color:var(--text2); font-size:0.88rem; margin-bottom:8px; cursor:default; }
+    .checklist input { accent-color: var(--cyan); }
+    @media(max-width:640px){ .platform-grid{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1><span>部署上线指南</span></h1>
+    <p class="sub">AI科技前沿 · 学习交流网站 · 多平台部署方案 · 从本地到生产环境</p>
+
+    <div class="tip">
+      本项目为纯静态网站（HTML + CSS + JS），无需后端服务，适合所有静态托管平台。以下提供三种主流部署方案。
+    </div>
+
+    <h2>方案对比</h2>
+    <div class="platform-grid">
+      <div class="platform-card">
+        <h4>CloudStudio</h4>
+        <p>腾讯云沙箱部署</p>
+        <span class="tag">推荐 · 一键部署</span>
+      </div>
+      <div class="platform-card">
+        <h4>Vercel</h4>
+        <p>全球 CDN 加速</p>
+        <span class="tag">免费 · 自动构建</span>
+      </div>
+      <div class="platform-card">
+        <h4>Netlify</h4>
+        <p>拖拽上传部署</p>
+        <span class="tag">免费 · 零配置</span>
+      </div>
+    </div>
+
+    <!-- ===== 方案一 ===== -->
+    <h2>方案一：CloudStudio 部署（推荐）</h2>
+    <p>通过 WorkBuddy 内置的 CloudStudio 部署能力，一键将网站发布到云端，获得公开访问链接。</p>
+
+    <div class="step">
+      <span class="step__num">1</span><span class="step__title">确认项目结构</span>
+      <p>确保项目目录包含以下文件：</p>
+      <pre><code>项目根目录/
+├── index.html      # 主页面
+├── css/
+│   └── style.css   # 样式文件
+└── js/
+    └── main.js     # 交互脚本</code></pre>
+    </div>
+
+    <div class="step">
+      <span class="step__num">2</span><span class="step__title">一键部署</span>
+      <p>在 WorkBuddy 对话中直接说「部署这个网站」或「上线」，系统会自动：</p>
+      <ul>
+        <li>创建 CloudStudio 沙箱工作空间</li>
+        <li>上传所有静态文件</li>
+        <li>启动静态文件服务器</li>
+        <li>返回公开访问 URL</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <span class="step__num">3</span><span class="step__title">验证与分享</span>
+      <p>部署完成后，通过返回的 URL 访问验证。可在「设置 - 数据管理 - 我发布的应用」中管理。</p>
+      <div class="tip">URL 格式示例：https://your-project.cloudstudio.net</div>
+    </div>
+
+    <!-- ===== 方案二 ===== -->
+    <h2>方案二：Vercel 部署</h2>
+    <p>Vercel 提供全球 CDN 加速、自动 HTTPS、自定义域名，适合正式上线。</p>
+
+    <div class="step">
+      <span class="step__num">1</span><span class="step__title">注册并安装 CLI</span>
+      <pre><code># 安装 Vercel CLI（需 Node.js 18+）
+npm install -g vercel
+
+# 登录
+vercel login</code></pre>
+    </div>
+
+    <div class="step">
+      <span class="step__num">2</span><span class="step__title">初始化并部署</span>
+      <p>在项目根目录执行：</p>
+      <pre><code># 首次部署（预览环境）
+vercel
+
+# 确认部署到生产环境
+vercel --prod</code></pre>
+      <div class="tip">首次运行会询问项目名称、框架等，直接回车使用默认值即可（框架选 Other）。</div>
+    </div>
+
+    <div class="step">
+      <span class="step__num">3</span><span class="step__title">自定义域名（可选）</span>
+      <p>在 Vercel Dashboard → Settings → Domains 中添加自定义域名，按提示配置 DNS 解析。</p>
+    </div>
+
+    <!-- ===== 方案三 ===== -->
+    <h2>方案三：Netlify 部署</h2>
+    <p>最简单的方式 — 直接拖拽文件夹即可上线。</p>
+
+    <div class="step">
+      <span class="step__num">1</span><span class="step__title">访问 Netlify Drop</span>
+      <p>打开浏览器访问 <code>https://app.netlify.com/drop</code>（需注册账号）。</p>
+    </div>
+
+    <div class="step">
+      <span class="step__num">2</span><span class="step__title">拖拽上传</span>
+      <p>将项目根目录（包含 index.html 的文件夹）拖入页面中的虚线框区域。Netlify 会自动部署并生成访问链接。</p>
+    </div>
+
+    <div class="step">
+      <span class="step__num">3</span><span class="step__title">设置站点名称</span>
+      <p>在 Site Settings 中可修改站点名称，获得更友好的 URL：<code>https://你的站点名.netlify.app</code></p>
+    </div>
+
+    <!-- ===== 部署检查清单 ===== -->
+    <h2>部署前检查清单</h2>
+    <div class="checklist">
+      <label><input type="checkbox"> index.html 有 <code>&lt;!DOCTYPE html&gt;</code> 声明</label>
+      <label><input type="checkbox"> viewport meta 标签已设置（移动端适配）</label>
+      <label><input type="checkbox"> 所有 CSS/JS 文件路径正确（相对路径）</label>
+      <label><input type="checkbox"> 图片使用 picsum.photos 占位，替换为实际图片</label>
+      <label><input type="checkbox"> 视频源替换为实际视频地址</label>
+      <label><input type="checkbox"> Meta description / Open Graph 已配置</label>
+      <label><input type="checkbox"> 在不同屏幕尺寸下测试响应式效果</label>
+      <label><input type="checkbox"> 明暗主题切换功能正常</label>
+    </div>
+
+    <!-- ===== 注意事项 ===== -->
+    <h2>注意事项</h2>
+    <div class="warn">
+      <strong>图片替换：</strong>当前使用 picsum.photos 随机占位图。正式上线前请替换为实际图片或上传到 CDN。
+    </div>
+    <div class="warn">
+      <strong>视频源：</strong>当前使用 w3schools 演示视频。请替换为自有视频或嵌入 B 站/YouTube iframe。
+    </div>
+    <div class="warn">
+      <strong>Chart.js CDN：</strong>依赖 CDN 加载。如需离线使用，请将 chart.umd.min.js 下载到本地 js/ 目录并修改引用路径。
+    </div>
+
+    <h2>后续优化建议</h2>
+    <ul>
+      <li>添加 PWA 支持（manifest.json + Service Worker），实现离线访问</li>
+      <li>接入后端 API，实现文章/视频动态加载</li>
+      <li>添加搜索功能（全文检索或标签筛选）</li>
+      <li>接入评论系统（如 Giscus / Disqus）</li>
+      <li>配置 SEO 站点地图 sitemap.xml 和 robots.txt</li>
+      <li>使用 WebP 格式图片 + 懒加载优化加载速度</li>
+    </ul>
+  </div>
+</body>
+</html>

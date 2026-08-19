@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>KV 后端部署指南 | AI科技前沿 · 学习交流</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .guide-container { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+    .guide-container h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    .guide-container .subtitle { color: var(--text-secondary); margin-bottom: 32px; font-size: 1.05rem; }
+    .guide-container h2 { font-size: 1.4rem; font-weight: 700; margin: 40px 0 16px; display: flex; align-items: center; gap: 10px; }
+    .guide-container h3 { font-size: 1.1rem; font-weight: 600; margin: 24px 0 12px; }
+    .guide-container p { line-height: 1.8; margin-bottom: 12px; color: var(--text-secondary); }
+    .guide-container ol, .guide-container ul { margin: 0 0 16px 20px; }
+    .guide-container li { line-height: 1.8; margin-bottom: 6px; color: var(--text-secondary); }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--gradient-primary); color: #fff; font-size: 0.9rem; font-weight: 700; flex-shrink: 0; }
+    .guide-code { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 16px 20px; margin: 12px 0; overflow-x: auto; }
+    .guide-code code { font-family: "JetBrains Mono", monospace; font-size: 0.85rem; color: var(--accent-cyan); white-space: pre; }
+    .guide-inline-code { font-family: "JetBrains Mono", monospace; font-size: 0.85rem; padding: 2px 6px; border-radius: 4px; background: var(--bg-tertiary); color: var(--accent-cyan); }
+    .guide-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .guide-table th, .guide-table td { padding: 10px 16px; border: 1px solid var(--border-color); font-size: 0.88rem; text-align: left; }
+    .guide-table th { background: var(--bg-tertiary); font-weight: 500; }
+    .guide-callout { padding: 16px 20px; border-radius: var(--radius-sm); margin: 16px 0; border-left: 3px solid; }
+    .guide-callout--warning { background: rgba(255, 64, 129, 0.08); border-color: var(--accent-pink); }
+    .guide-callout--info { background: rgba(0, 212, 255, 0.08); border-color: var(--accent-cyan); }
+    .guide-callout--success { background: rgba(0, 230, 118, 0.08); border-color: var(--accent-green); }
+    .guide-callout p { margin: 0; color: var(--text-primary); }
+    .guide-callout strong { color: var(--text-primary); }
+    .guide-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; padding: 16px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+    .guide-nav a { padding: 4px 12px; border-radius: var(--radius-full); font-size: 0.82rem; background: var(--bg-tertiary); color: var(--text-secondary); }
+    .guide-nav a:hover { color: var(--accent-cyan); }
+  </style>
+</head>
+<body>
+  <div class="guide-container">
+    <h1>KV 后端管理系统部署指南</h1>
+    <p class="subtitle">Cloudflare Pages + Functions + KV — 从零配置到管理后台上线</p>
+
+    <div class="guide-nav">
+      <a href="#prerequisites">前置条件</a>
+      <a href="#step1">第一步：创建 KV</a>
+      <a href="#step2">第二步：绑定 KV</a>
+      <a href="#step3">第三步：设置密码</a>
+      <a href="#step4">第四步：上传代码</a>
+      <a href="#step5">第五步：初始化数据</a>
+      <a href="#step6">第六步：验证</a>
+      <a href="#faq">常见问题</a>
+    </div>
+
+    <div class="guide-callout guide-callout--info">
+      <p><strong>架构说明：</strong>本次升级在原有静态网站基础上增加了 Cloudflare Functions API 和 KV 存储层。管理后台通过 API 读写 KV，前台页面自动从 KV 加载内容。无需重新构建，改完即时生效。</p>
+    </div>
+
+    <h2 id="prerequisites">前置条件</h2>
+    <ul>
+      <li>已有 Cloudflare 账号（免费版即可）</li>
+      <li>网站已通过 Cloudflare Pages 部署（或即将部署）</li>
+      <li>GitHub 仓库已创建</li>
+    </ul>
+
+    <h2 id="step1"><span class="step-num">1</span> 创建 KV 命名空间</h2>
+    <ol>
+      <li>登录 <a href="https://dash.cloudflare.com" target="_blank">Cloudflare Dashboard</a></li>
+      <li>左侧菜单找到 <strong>Workers & Pages</strong> → 点击 <strong>KV</strong> 标签</li>
+      <li>点击 <strong>Create a namespace</strong> 按钮</li>
+      <li>名称填写：<span class="guide-inline-code">CONTENT_KV</span></li>
+      <li>点击 <strong>Add</strong> 创建完成</li>
+    </ol>
+    <div class="guide-callout guide-callout--success">
+      <p>创建后你会看到一个 Namespace ID，记下来备用（绑定时会用到）。</p>
+    </div>
+
+    <h2 id="step2"><span class="step-num">2</span> 绑定 KV 到 Pages 项目</h2>
+    <ol>
+      <li>进入 <strong>Workers & Pages</strong> → 找到你已部署的 Pages 项目</li>
+      <li>点击项目名称进入详情页</li>
+      <li>点击 <strong>Settings</strong> 标签</li>
+      <li>找到 <strong>Functions</strong> 区域 → <strong>KV namespace bindings</strong></li>
+      <li>点击 <strong>Add binding</strong></li>
+      <li>按以下信息填写：</li>
+    </ol>
+    <table class="guide-table">
+      <tr><th>配置项</th><th>填写值</th></tr>
+      <tr><td>Variable name</td><td><code>CONTENT_KV</code></td></tr>
+      <tr><td>KV namespace</td><td>选择第一步创建的 CONTENT_KV</td></tr>
+      <tr><td>Environment</td><td>Production（同时建议添加 Preview）</td></tr>
+    </table>
+    <div class="guide-callout guide-callout--warning">
+      <p><strong>注意：</strong>Variable name 必须是 <code>CONTENT_KV</code>，代码中通过 <code>env.CONTENT_KV</code> 访问。名称不匹配会导致 API 返回 503 错误。</p>
+    </div>
+
+    <h2 id="step3"><span class="step-num">3</span> 设置管理员密码</h2>
+    <ol>
+      <li>仍在 Pages 项目的 <strong>Settings</strong> 页面</li>
+      <li>找到 <strong>Environment variables</strong> 区域</li>
+      <li>点击 <strong>Add variable</strong></li>
+      <li>按以下信息填写：</li>
+    </ol>
+    <table class="guide-table">
+      <tr><th>配置项</th><th>填写值</th></tr>
+      <tr><td>Variable name</td><td><code>ADMIN_PASSWORD</code></td></tr>
+      <tr><td>Value</td><td>你的管理密码（如 <code>MySecurePass2026</code>）</td></tr>
+      <tr><td>Environment</td><td>Production</td></tr>
+    </table>
+    <div class="guide-callout guide-callout--warning">
+      <p><strong>安全建议：</strong>密码请使用字母+数字组合，至少 12 位。不要使用常见密码。此密码用于登录管理后台 <code>/admin.html</code>。</p>
+    </div>
+
+    <h2 id="step4"><span class="step-num">4</span> 上传代码到 GitHub</h2>
+    <p>将以下文件上传到你的 GitHub 仓库（如果已连接 Cloudflare Pages，推送后自动触发部署）：</p>
+    <h3>需要上传的文件/目录：</h3>
+    <div class="guide-code"><code>你的仓库/
+├── index.html              ← 已有（已修改，支持动态加载）
+├── admin.html              ← 新增（管理后台页面）
+├── css/
+│   ├── style.css           ← 已有
+│   └── admin.css           ← 新增（管理后台样式）
+├── js/
+│   ├── main.js             ← 已有（已修改，支持动态加载）
+│   └── admin.js            ← 新增（管理后台逻辑）
+├── functions/
+│   └── api/
+│       └── [[catchall]].js ← 新增（API 接口）
+├── wrangler.toml           ← 新增（本地开发配置）
+├── .gitignore              ← 已有
+└── README.md               ← 已有</code></div>
+
+    <h3>上传方式一：网页拖拽（简单）</h3>
+    <ol>
+      <li>打开你的 GitHub 仓库页面</li>
+      <li>点击 <strong>Add file</strong> → <strong>Upload files</strong></li>
+      <li>将上述文件拖入（注意 <span class="guide-inline-code">functions/api/</span> 目录结构需要先在仓库里创建文件夹）</li>
+      <li>填写 commit message，点击 <strong>Commit changes</strong></li>
+    </ol>
+
+    <h3>上传方式二：Git 命令（推荐）</h3>
+    <div class="guide-code"><code>cd 你的项目目录
+git add -A
+git commit -m "feat: 添加 KV 后端管理系统"
+git push origin main</code></div>
+
+    <div class="guide-callout guide-callout--info">
+      <p>推送后 Cloudflare Pages 会自动触发构建部署。等待 30-60 秒后，Functions API 即可在生产环境使用。</p>
+    </div>
+
+    <h2 id="step5"><span class="step-num">5</span> 初始化数据</h2>
+    <ol>
+      <li>部署完成后，访问 <span class="guide-inline-code">https://你的域名.pages.dev/admin.html</span></li>
+      <li>输入第三步设置的管理员密码，点击登录</li>
+      <li>首次登录后，KV 中还没有内容数据</li>
+      <li>点击右上角 <strong>「初始化数据」</strong> 按钮</li>
+      <li>确认后，系统会自动将种子数据写入 KV（包括 6 篇文章、6 个技能、5 个视频等）</li>
+      <li>看到「数据初始化完成」提示后，左侧导航可看到各内容列表</li>
+    </ol>
+    <div class="guide-callout guide-callout--success">
+      <p>初始化后，前台首页刷新即可看到从 KV 动态加载的内容。之后所有内容修改都在管理后台完成，无需改代码。</p>
+    </div>
+
+    <h2 id="step6"><span class="step-num">6</span> 验证完整流程</h2>
+    <ol>
+      <li>访问前台首页，确认页面正常显示</li>
+      <li>打开管理后台，编辑一篇文章标题，保存</li>
+      <li>刷新前台首页，确认标题已更新</li>
+      <li>在管理后台新增一篇文章，保存</li>
+      <li>刷新前台首页，确认新文章出现在列表最前面</li>
+      <li>测试删除功能，确认删除后前台同步更新</li>
+    </ol>
+    <p>如果以上步骤全部通过，KV 后端管理系统已完全就绪！</p>
+
+    <h2 id="faq">常见问题</h2>
+
+    <h3>Q1: 登录页显示「无法连接服务器」</h3>
+    <p>API 未部署成功。检查 <span class="guide-inline-code">functions/api/[[catchall]].js</span> 文件是否已上传，目录结构是否正确。在 Cloudflare Pages 的 Functions 标签页可以看到部署日志。</p>
+
+    <h3>Q2: 登录提示「管理员密码未设置」</h3>
+    <p>环境变量 <span class="guide-inline-code">ADMIN_PASSWORD</span> 未配置或名称不匹配。回到第二步检查 Settings → Environment variables。</p>
+
+    <h3>Q3: API 返回 503「KV 未绑定」</h3>
+    <p>KV 命名空间未绑定或 Variable name 不是 <span class="guide-inline-code">CONTENT_KV</span>。回到第二步检查 Settings → Functions → KV namespace bindings。</p>
+
+    <h3>Q4: 前台页面还是显示旧的静态内容</h3>
+    <p>可能是浏览器缓存。尝试 Ctrl+Shift+R 强制刷新。也可能是 API 未部署成功，用浏览器开发者工具 Network 面板检查 <span class="guide-inline-code">/api/content?type=all</span> 请求是否返回正常。</p>
+
+    <h3>Q5: 管理后台修改了内容但前台没变化</h3>
+    <p>前台页面会请求 <span class="guide-inline-code">/api/content</span> 获取最新数据。如果没变化，检查 API 是否返回了新数据。Cloudflare KV 写入后可能有几秒的传播延迟。</p>
+
+    <h3>Q6: 本地开发如何测试 Functions？</h3>
+    <p>安装 Wrangler CLI 后运行：</p>
+    <div class="guide-code"><code>npx wrangler pages dev . --kv CONTENT_KV --binding ADMIN_PASSWORD=your_password</code></div>
+    <p>这会在本地启动一个服务器，支持 Functions 和 KV 的完整功能。</p>
+
+    <h3>Q7: 如何修改管理员密码？</h3>
+    <p>在 Cloudflare Pages Settings → Environment variables 中修改 <span class="guide-inline-code">ADMIN_PASSWORD</span> 的值即可。修改后需要重新登录。</p>
+
+    <h2 style="margin-top:48px">文件架构总览</h2>
+    <table class="guide-table">
+      <tr><th>文件</th><th>用途</th><th>新增/修改</th></tr>
+      <tr><td>functions/api/[[catchall]].js</td><td>API 接口（认证、CRUD、初始化）</td><td>新增</td></tr>
+      <tr><td>admin.html</td><td>管理后台页面</td><td>新增</td></tr>
+      <tr><td>css/admin.css</td><td>管理后台样式</td><td>新增</td></tr>
+      <tr><td>js/admin.js</td><td>管理后台逻辑</td><td>新增</td></tr>
+      <tr><td>js/main.js</td><td>前台交互（增加动态加载）</td><td>修改</td></tr>
+      <tr><td>wrangler.toml</td><td>本地开发配置</td><td>新增</td></tr>
+    </table>
+
+    <div class="guide-callout guide-callout--success" style="margin-top:32px">
+      <p>完成以上步骤后，你就拥有了一个完整的内容管理网站：前台展示 + 后台管理 + KV 存储，全部运行在 Cloudflare 免费版上，无需服务器。</p>
+    </div>
+  </div>
+</body>
+</html>

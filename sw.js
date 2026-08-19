@@ -1,9 +1,9 @@
 /**
- * AI 科技前沿 - Service Worker
+ * AI科技前沿 · 学习交流 - Service Worker
  * 策略：核心资源预缓存 + 静态资源 stale-while-revalidate + API 网络优先
  * 每次发布新版请同步更新 CACHE_VERSION 与 PRECACHE 中的资源版本号
  */
-const CACHE_VERSION = "ai-tech-v20260819a";
+const CACHE_VERSION = "ai-tech-v20260819c";
 const PRECACHE = "precache-" + CACHE_VERSION;
 const RUNTIME = "runtime-" + CACHE_VERSION;
 
@@ -17,16 +17,16 @@ const PRECACHE_URLS = [
   "/community.html",
   "/article.html",
   "/page.html",
-  "/css/style.css?v=20260819a",
-  "/css/article.css?v=20260819a",
-  "/js/main.js?v=20260819a",
-  "/js/news.js?v=20260819a",
-  "/js/skills.js?v=20260819a",
-  "/js/videos.js?v=20260819a",
-  "/js/community.js?v=20260819a",
-  "/js/article.js?v=20260819a",
-  "/js/page.js?v=20260819a",
-  "/js/site-footer.js?v=20260819a",
+  "/css/style.css?v=20260819c",
+  "/css/article.css?v=20260819c",
+  "/js/main.js?v=20260819c",
+  "/js/news.js?v=20260819c",
+  "/js/skills.js?v=20260819c",
+  "/js/videos.js?v=20260819c",
+  "/js/community.js?v=20260819c",
+  "/js/article.js?v=20260819c",
+  "/js/page.js?v=20260819c",
+  "/js/site-footer.js?v=20260819c",
   "/manifest.json",
   "/favicon.svg",
   "/assets/og-cover.png",

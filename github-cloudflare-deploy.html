@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub + Cloudflare Pages 部署指南</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0e1a; --bg2: #111827; --bg3: #1a2332;
+      --border: rgba(255,255,255,0.08);
+      --text: #f0f4ff; --text2: #a0aec0; --text3: #6b7280;
+      --cyan: #00d4ff; --purple: #7c4dff; --green: #00e676; --orange: #ff9100; --pink: #ff4081;
+      --grad: linear-gradient(135deg, #00d4ff, #7c4dff);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: "Noto Sans SC", sans-serif;
+      background: var(--bg); color: var(--text);
+      line-height: 1.7; padding: 0;
+    }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; }
+    h1 { font-size: 2rem; margin-bottom: 8px; }
+    h1 span { background: var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+    .sub { color: var(--text2); margin-bottom: 8px; font-size: 1rem; }
+    .badges { display:flex; gap:8px; margin-bottom:40px; flex-wrap:wrap; }
+    .badge { font-size:0.75rem; padding:3px 12px; border-radius:99px; border:1px solid var(--border); }
+    .badge--gh { color:#fff; background:#24292e; border-color:#24292e; }
+    .badge--cf { color:#fff; background:#f38020; border-color:#f38020; }
+    .badge--free { color:var(--green); border-color:rgba(0,230,118,0.3); }
+
+    h2 { font-size: 1.35rem; margin: 48px 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    h2 .num { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; background:var(--grad); color:#fff; font-size:0.9rem; font-weight:700; }
+    h3 { font-size: 1.05rem; margin: 24px 0 12px; color: var(--cyan); }
+    p { color: var(--text2); margin-bottom: 12px; font-size: 0.92rem; }
+
+    .step { background: var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px 24px; margin-bottom:16px; }
+    .step__head { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .step__num { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:var(--bg3); border:1px solid var(--border); color:var(--cyan); font-size:0.8rem; font-weight:600; flex-shrink:0; }
+    .step__title { font-size:0.98rem; font-weight:600; }
+    .step p { margin-bottom:8px; }
+
+    code { font-family:"JetBrains Mono",monospace; font-size:0.85rem; background:var(--bg3); padding:2px 8px; border-radius:4px; color:var(--cyan); }
+    pre { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:16px 20px; overflow-x:auto; margin:12px 0; }
+    pre code { background:none; padding:0; color:var(--text); font-size:0.82rem; line-height:1.6; }
+
+    .tip { background:rgba(0,212,255,0.08); border:1px solid rgba(0,212,255,0.2); border-radius:8px; padding:12px 16px; margin:12px 0; font-size:0.85rem; color:var(--cyan); }
+    .warn { background:rgba(255,145,0,0.08); border:1px solid rgba(255,145,0,0.2); border-radius:8px; padding:12px 16px; margin:12px 0; font-size:0.85rem; color:var(--orange); }
+    .success { background:rgba(0,230,118,0.08); border:1px solid rgba(0,230,118,0.2); border-radius:8px; padding:12px 16px; margin:12px 0; font-size:0.85rem; color:var(--green); }
+
+    .flow { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:20px 0; }
+    .flow__node { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px 20px; text-align:center; font-size:0.85rem; }
+    .flow__node strong { display:block; font-size:0.9rem; margin-bottom:2px; }
+    .flow__node span { color:var(--text3); font-size:0.78rem; }
+    .flow__arrow { color:var(--cyan); font-size:1.2rem; }
+
+    .config-table { width:100%; border-collapse:collapse; margin:12px 0; }
+    .config-table th, .config-table td { padding:10px 16px; text-align:left; border-bottom:1px solid var(--border); font-size:0.88rem; }
+    .config-table th { color:var(--text3); font-weight:500; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.5px; }
+    .config-table td code { font-size:0.82rem; }
+
+    .toc { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px 24px; margin-bottom:40px; }
+    .toc h3 { margin:0 0 12px; color:var(--text); font-size:0.95rem; }
+    .toc ol { padding-left:20px; }
+    .toc li { margin-bottom:6px; font-size:0.88rem; }
+    .toc a { color:var(--text2); }
+    .toc a:hover { color:var(--cyan); }
+
+    .faq { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px 24px; margin:12px 0; }
+    .faq h3 { margin:0 0 8px; color:var(--orange); }
+    .faq p { margin:0; }
+
+    @media(max-width:640px){
+      .wrap{padding:32px 16px;}
+      .flow{flex-direction:column;}
+      .flow__arrow{transform:rotate(90deg);}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1><span>GitHub + Cloudflare Pages</span><br>部署上线指南</h1>
+    <p class="sub">手动上传代码到 GitHub → Cloudflare Pages 自动构建部署 → 全球 CDN 加速</p>
+    <div class="badges">
+      <span class="badge badge--gh">GitHub 仓库</span>
+      <span class="badge badge--cf">Cloudflare Pages</span>
+      <span class="badge badge--free">全程免费</span>
+      <span class="badge badge--free">自动 HTTPS</span>
+      <span class="badge badge--free">全球 CDN</span>
+    </div>
+
+    <div class="toc">
+      <h3>📋 目录</h3>
+      <ol>
+        <li><a href="#phase1">第一阶段：在 GitHub 上创建仓库并上传代码</a></li>
+        <li><a href="#phase2">第二阶段：在 Cloudflare Pages 中连接仓库并部署</a></li>
+        <li><a href="#phase3">第三阶段：验证部署与自定义域名</a></li>
+        <li><a href="#faq">常见问题</a></li>
+      </ol>
+    </div>
+
+    <div class="flow">
+      <div class="flow__node"><strong>本地文件</strong><span>HTML/CSS/JS</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node"><strong>GitHub 仓库</strong><span>代码托管</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node"><strong>Cloudflare Pages</strong><span>自动构建</span></div>
+      <span class="flow__arrow">→</span>
+      <div class="flow__node"><strong>上线访问</strong><span>全球 CDN</span></div>
+    </div>
+
+    <!-- ===== 第一阶段 ===== -->
+    <h2 id="phase1"><span class="num">1</span> GitHub 创建仓库并上传代码</h2>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">1</span>
+        <span class="step__title">注册/登录 GitHub</span>
+      </div>
+      <p>打开 <a href="https://github.com" target="_blank" style="color:var(--cyan)">github.com</a>，如果没有账号点击「Sign up」注册（免费）。已有账号直接「Sign in」登录。</p>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">2</span>
+        <span class="step__title">创建新仓库</span>
+      </div>
+      <p>点击右上角 <code>+</code> → <code>New repository</code>，填写以下信息：</p>
+      <table class="config-table">
+        <tr><th>字段</th><th>填写内容</th></tr>
+        <tr><td>Repository name</td><td><code>ai-tech-frontend</code>（或你喜欢的名称）</td></tr>
+        <tr><td>Description</td><td>AI科技要闻 · 技能知识分享 · 共同学习交流</td></tr>
+        <tr><td>Visibility</td><td>选择 <code>Public</code>（公开，Cloudflare Pages 免费版需要公开仓库）</td></tr>
+        <tr><td>Initialize</td><td><strong>不要勾选</strong> Add README / .gitignore / license（我们已有这些文件）</td></tr>
+      </table>
+      <p>点击绿色按钮 <code>Create repository</code> 创建。</p>
+      <div class="tip">创建后会跳转到空仓库页面，页面上会显示仓库地址，类似：<code>https://github.com/你的用户名/ai-tech-frontend.git</code>，记下这个地址。</div>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">3</span>
+        <span class="step__title">上传文件（手动方式 — 推荐）</span>
+      </div>
+      <p>在刚创建的空仓库页面：</p>
+      <p><strong>方式 A：网页直接上传（最简单，适合不熟悉 Git 的同学）</strong></p>
+      <ol style="padding-left:20px; margin:8px 0;">
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">点击页面上的 <code>uploading an existing file</code> 链接</li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">将项目文件夹中的<strong>所有文件和子文件夹</strong>拖入虚线框区域</li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">需要上传的文件清单：</li>
+      </ol>
+      <pre><code>ai-tech-frontend/
+├── index.html          ← 必须上传
+├── .gitignore          ← 必须上传
+├── README.md           ← 必须上传
+├── css/
+│   └── style.css       ← 必须上传（注意保留 css/ 目录结构）
+└── js/
+    └── main.js         ← 必须上传（注意保留 js/ 目录结构）</code></pre>
+      <div class="warn"><strong>注意：</strong>不要上传 <code>.workbuddy/</code> 文件夹和 <code>deploy-guide.html</code>（部署指南不属于网站内容）。<code>.gitignore</code> 已经排除了 <code>.workbuddy/</code>。</div>
+      <p>在页面底部填写 commit message（如 <code>Initial commit: AI科技前沿 · 学习交流网站</code>），点击 <code>Commit changes</code> 提交。</p>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">4</span>
+        <span class="step__title">上传文件（Git 命令方式 — 适合开发者）</span>
+      </div>
+      <p>如果已安装 Git，可在终端执行：</p>
+      <pre><code># 进入项目目录
+cd "D:/系统D盘下载文件/260731_feige_workbuddy/2026-08-16-09-34-02"
+
+# 初始化 Git 仓库
+git init
+git branch -M main
+
+# 添加文件（.gitignore 会自动排除 .workbuddy/）
+git add .
+
+# 提交
+git commit -m "Initial commit: AI科技前沿 · 学习交流网站"
+
+# 关联远程仓库（替换为你的地址）
+git remote add origin https://github.com/你的用户名/ai-tech-frontend.git
+
+# 推送
+git push -u origin main</code></pre>
+      <div class="tip">如果推送时要求登录，GitHub 已不支持密码认证，需要使用 <a href="https://docs.github.com/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token" target="_blank" style="color:var(--cyan)">Personal Access Token</a> 替代密码。</div>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">5</span>
+        <span class="step__title">确认文件已上传</span>
+      </div>
+      <p>回到 GitHub 仓库页面，确认能看到以下结构：</p>
+      <pre><code>📁 css/
+   📄 style.css
+📁 js/
+   📄 main.js
+📄 .gitignore
+📄 README.md
+📄 index.html</code></pre>
+      <div class="success">✅ 确认 <code>index.html</code> 在仓库<strong>根目录</strong>（不在子文件夹里），这点对 Cloudflare Pages 很重要。</div>
+    </div>
+
+    <!-- ===== 第二阶段 ===== -->
+    <h2 id="phase2"><span class="num">2</span> Cloudflare Pages 连接仓库并部署</h2>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">1</span>
+        <span class="step__title">注册/登录 Cloudflare</span>
+      </div>
+      <p>打开 <a href="https://dash.cloudflare.com/sign-up" target="_blank" style="color:var(--cyan)">dash.cloudflare.com</a> 注册账号（免费）。已有账号直接登录。</p>
+      <div class="tip">Cloudflare 注册不需要信用卡，免费版功能对本项目完全够用。</div>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">2</span>
+        <span class="step__title">进入 Cloudflare Pages</span>
+      </div>
+      <p>登录后在左侧导航栏找到 <code>Workers &amp; Pages</code> → 点击 <code>Create</code> → 选择 <code>Pages</code> 标签页 → 点击 <code>Connect to Git</code>。</p>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">3</span>
+        <span class="step__title">授权 GitHub</span>
+      </div>
+      <p>首次使用会跳转到 GitHub 授权页面：</p>
+      <ol style="padding-left:20px; margin:8px 0;">
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">选择 <code>Only select repositories</code></li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">在下拉列表中选中你刚创建的 <code>ai-tech-frontend</code> 仓库</li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">点击 <code>Install &amp; Authorize</code></li>
+      </ol>
+      <p>授权完成后会自动跳回 Cloudflare。</p>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">4</span>
+        <span class="step__title">配置项目（关键步骤）</span>
+      </div>
+      <p>选择刚才授权的仓库 <code>ai-tech-frontend</code>，点击 <code>Begin setup</code>，按以下表格填写：</p>
+      <table class="config-table">
+        <tr><th>配置项</th><th>填写值</th><th>说明</th></tr>
+        <tr>
+          <td>Project name</td>
+          <td><code>ai-tech-frontend</code></td>
+          <td>将作为域名的一部分</td>
+        </tr>
+        <tr>
+          <td>Production branch</td>
+          <td><code>main</code></td>
+          <td>主分支，推送代码到 main 自动触发部署</td>
+        </tr>
+        <tr>
+          <td>Framework preset</td>
+          <td><code>None</code></td>
+          <td>纯静态网站，无框架</td>
+        </tr>
+        <tr>
+          <td>Build command</td>
+          <td><strong>留空</strong></td>
+          <td>不需要构建，直接部署源文件</td>
+        </tr>
+        <tr>
+          <td>Build output directory</td>
+          <td><code>/</code>（或留空）</td>
+          <td>输出目录就是仓库根目录</td>
+        </tr>
+        <tr>
+          <td>Root directory</td>
+          <td><strong>留空</strong></td>
+          <td>使用仓库根目录</td>
+        </tr>
+      </table>
+      <div class="warn"><strong>最重要：</strong>Build command 必须留空！这不是 Next.js/React 项目，不需要 <code>npm run build</code>。</div>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">5</span>
+        <span class="step__title">环境变量（可选）</span>
+      </div>
+      <p>本项目不需要任何环境变量，直接跳过这一步。</p>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">6</span>
+        <span class="step__title">点击 Save and Deploy</span>
+      </div>
+      <p>点击页面底部的 <code>Save and Deploy</code> 按钮。Cloudflare 会开始第一次构建部署。</p>
+      <p>部署过程通常 <strong>30 秒 ~ 1 分钟</strong>。页面会显示实时日志，看到 <code>Success! Your site is deployed</code> 就完成了。</p>
+      <div class="success">✅ 部署成功后，页面会显示你的网站地址，格式为：<br><code>https://ai-tech-frontend.pages.dev</code></div>
+    </div>
+
+    <!-- ===== 第三阶段 ===== -->
+    <h2 id="phase3"><span class="num">3</span> 验证部署与自定义域名</h2>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">1</span>
+        <span class="step__title">验证网站</span>
+      </div>
+      <p>点击部署成功页面上的访问链接，或在浏览器输入 <code>https://你的项目名.pages.dev</code>，确认网站正常打开。</p>
+      <p>检查清单：</p>
+      <ul style="padding-left:20px; margin:8px 0;">
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">✅ 页面正常加载，样式正确</li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">✅ 明暗主题切换正常</li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">✅ Chart.js 图表正常渲染</li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">✅ 移动端响应式布局正常</li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">✅ HTTPS 证书已自动启用</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">2</span>
+        <span class="step__title">自定义域名（可选）</span>
+      </div>
+      <p>如果你有自己的域名，可以绑定到 Cloudflare Pages：</p>
+      <ol style="padding-left:20px; margin:8px 0;">
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">进入 Cloudflare Pages 项目 → <code>Custom domains</code> → <code>Set up a custom domain</code></li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">输入你的域名（如 <code>www.yoursite.com</code>）</li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">如果域名已托管在 Cloudflare，DNS 记录会自动添加</li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">如果在其他注册商，按提示添加 <code>CNAME</code> 记录指向 <code>你的项目名.pages.dev</code></li>
+        <li style="color:var(--text2); font-size:0.88rem; margin-bottom:6px;">等待 DNS 生效（通常几分钟到几小时），SSL 证书自动签发</li>
+      </ol>
+    </div>
+
+    <div class="step">
+      <div class="step__head">
+        <span class="step__num">3</span>
+        <span class="step__title">后续更新网站</span>
+      </div>
+      <p>以后每次修改代码后，只需要把更新的文件推送到 GitHub 的 <code>main</code> 分支，Cloudflare Pages 会<strong>自动检测并重新部署</strong>，无需手动操作。</p>
+      <div class="tip">网页上传方式：进入 GitHub 仓库 → 点击对应文件 → <code>编辑（铅笔图标）</code> → 修改 → <code>Commit changes</code>。<br>Git 命令方式：<code>git add . && git commit -m "更新说明" && git push</code></p>
+    </div>
+
+    <!-- ===== FAQ ===== -->
+    <h2 id="faq">常见问题</h2>
+
+    <div class="faq">
+      <h3>Q: 部署后页面空白 / 样式丢失？</h3>
+      <p>检查 GitHub 仓库中 <code>css/</code> 和 <code>js/</code> 文件夹是否上传成功，文件路径是否正确。在浏览器按 F12 打开开发者工具 → Console / Network 面板查看是否有 404 报错。</p>
+    </div>
+
+    <div class="faq">
+      <h3>Q: Chart.js 图表不显示？</h3>
+      <p>Chart.js 通过 CDN 加载，确认部署环境能正常访问 <code>cdn.jsdelivr.net</code>。如果需要离线使用，将 Chart.js 下载到本地 <code>js/</code> 目录，修改 <code>index.html</code> 中的 <code>&lt;script src&gt;</code> 为本地路径。</p>
+    </div>
+
+    <div class="faq">
+      <h3>Q: GitHub 上传时提示文件太多？</h3>
+      <p>GitHub 网页上传最多 100 个文件。本项目只有 5 个文件，不会触发限制。如果后续文件增多，建议改用 Git 命令推送。</p>
+    </div>
+
+    <div class="faq">
+      <h3>Q: Cloudflare Pages 免费版有什么限制？</h3>
+      <p>免费版包含：每月 500 次构建、无限请求、无限带宽、无限站点。对于个人网站完全够用，不需要付费。</p>
+    </div>
+
+    <div class="faq">
+      <h3>Q: 能否绑定多个域名？</h3>
+      <p>可以。在 Cloudflare Pages → Custom domains 中可以添加多个域名，每个域名都会自动获得 SSL 证书。</p>
+    </div>
+
+    <div class="faq">
+      <h3>Q: 如何查看部署历史和回滚？</h3>
+      <p>在 Cloudflare Pages 项目页面 → <code>Deployments</code> 标签页可以看到所有部署记录。点击任意历史部署右侧的 <code>...</code> → <code>Rollback to this deployment</code> 即可回滚。</p>
+    </div>
+
+    <div class="success" style="margin-top:32px;">
+      <strong>🎉 全部完成后你将拥有：</strong><br>
+      • 一个 GitHub 代码仓库（可随时修改更新）<br>
+      • 一个 Cloudflare Pages 在线站点（全球 CDN 加速）<br>
+      • 自动 HTTPS 证书<br>
+      • 推送代码自动触发重新部署<br>
+      • 免费的 <code>你的项目名.pages.dev</code> 域名
+    </div>
+  </div>
+</body>
+</html>
