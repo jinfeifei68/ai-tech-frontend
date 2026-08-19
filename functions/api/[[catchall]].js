@@ -1,5 +1,5 @@
 /**
- * AI科技前沿 — Cloudflare Pages Functions API
+ * AI科技前沿 · 学习交流 — Cloudflare Pages Functions API
  * 统一入口：/api/*
  * 
  * 路由：
@@ -10,8 +10,8 @@
  *   POST /api/content       — 新增内容（需认证）
  *   PUT  /api/content       — 更新内容（需认证）
  *   DELETE /api/content     — 删除内容（需认证）
- *   POST /api/init          — 初始化种子数据（需认证）
- *   POST /api/community/join      — 加入社区（公开，写 members）
+ *   POST /api/init          — 初始化种子数据（需认证，补全模式，force=1 全量重置）
+ *   POST /api/community/join      — 已停用（取消注册，返回 410）
  *   POST /api/community/like      — 讨论点赞（公开，IP 去重）
  *   POST /api/community/comment   — 提交评论（公开，进待审）
  *   GET  /api/community/comments  — 已审核评论（公开）
@@ -31,19 +31,17 @@
  *   comment_guard:<ip>— 评论频率限制（120 秒过期）
  */
 
-/* ===== CORS ===== */
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
-
-function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", ...CORS_HEADERS },
-  });
-}
+/* ===== CORS（白名单收紧，禁止任意站点跨域调用） ===== */
+/* 允许的来源：本站主域名 + 本地开发地址。
+ * 其他 Origin 一律 403，防止恶意站点借访客浏览器调用 API 刷评论/刷赞/CSRF。 */
+const ALLOWED_ORIGINS = [
+  "https://ai.feige68.dpdns.org",
+  "https://ai.feige68.dpdns.org:443",
+  "http://localhost:8787",
+  "http://127.0.0.1:8787",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
 
 /* ===== Auth ===== */
 async function verifyAuth(request, env) {
@@ -58,6 +56,13 @@ async function verifyAuth(request, env) {
     if (session.expires && Date.now() > session.expires) {
       await env.CONTENT_KV.delete("auth:token:" + token);
       return false;
+    }
+    /* IP 绑定：token 只能由签发时的 IP 使用（防 token 泄露后被异地滥用） */
+    if (session.ip && session.ip !== "unknown") {
+      const reqIp = clientIP(request);
+      if (reqIp && reqIp !== "unknown" && session.ip !== reqIp) {
+        return false;
+      }
     }
     return true;
   } catch {
@@ -102,6 +107,8 @@ const SEED = {
       image: "https://picsum.photos/seed/ai-model/800/450",
       title: "下一代多模态大模型发布：文本、图像、视频统一理解能力大幅提升",
       excerpt: "新模型在多项基准测试中刷新纪录，支持超长上下文窗口，可同时处理文本、图像和视频输入，推理速度较前代提升 3 倍……",
+      source: "示例来源",
+      sourceUrl: "https://example.com/ai-model-news",
       content: "## 多模态统一架构\n\n研究团队发布了全新的多模态大模型，采用统一 Transformer 架构，可同时处理文本、图像和视频输入。\n\n### 核心突破\n\n- **超长上下文**：支持 128K token 上下文窗口，可处理整本书籍或长视频\n- **多模态融合**：文本、图像、视频不再需要独立模型，统一编码器实现跨模态理解\n- **推理加速**：通过 KV Cache 优化和投机解码，推理速度较前代提升 3 倍\n\n### 基准测试表现\n\n| 基准测试 | 前代得分 | 新模型得分 | 提升 |\n|---------|---------|-----------|------|\n| MMLU | 82.3 | 89.7 | +7.4 |\n| MMMU | 55.1 | 68.2 | +13.1 |\n| Video-MME | 45.3 | 62.8 | +17.5 |\n\n### 应用前景\n\n该模型在医疗影像分析、自动驾驶场景理解、视频内容审核等领域具有广阔应用前景。团队表示将在近期开源模型权重，届时开发者可在本地部署和微调。",
       date: "2026-08-16",
       reads: "12.5k",
@@ -255,7 +262,8 @@ const SEED = {
       id: "v1",
       isMain: false,
       title: "Python 数据处理三大神器对比",
-      src: "https://www.w3schools.com/html/mov_bbb.mp4",
+      src: "",
+      embed: "https://player.bilibili.com/player.html?isOutside=true&bvid=BV1GJ411x7h7&p=1",
       poster: "https://picsum.photos/seed/video-1/640/360",
       duration: "15:20",
       views: "12.3k",
@@ -341,28 +349,42 @@ const SEED = {
       title: "团队介绍",
       navLabel: "团队介绍",
       updatedAt: "2026-08-16",
-      content: "## 关于 AI 科技前沿\n\nAI 科技前沿是一个聚焦人工智能领域的学习与分享平台，由一群热爱技术的开发者共同创建和维护。\n\n### 我们的使命\n\n让每一位对 AI 感兴趣的学习者都能找到适合自己的学习路径，从入门到精通，从理论到实践。\n\n### 我们做什么\n\n- **AI 要闻速递**：第一时间追踪和解读人工智能领域的重要新闻与技术突破\n- **技能知识分享**：撰写和整理实战教程，涵盖 Python、机器学习、深度学习、NLP、模型部署等方向\n- **视频教程专区**：制作和精选高质量视频教程，边看边练\n- **数据可视化**：用图表呈现行业趋势、技术热度和学习数据\n- **学习社区**：打造开放的讨论和交流空间，让知识在互动中增长\n\n### 我们的团队\n\n团队成员包括 AI 领域的研究员、工程师和博士，分布在不同的城市，通过线上协作共同维护这个平台。每个人都在用自己的专业知识，为社区贡献有价值的内容。\n\n### 加入我们\n\n如果你也热爱 AI，愿意分享你的知识和见解，欢迎通过「投稿须知」了解投稿方式，或通过「联系方式」与我们取得联系。我们期待你的加入！\n\n---\n\n*AI 科技前沿 — 共同学习，共同成长*",
+      content: "## 关于 AI科技前沿 · 学习交流\n\nAI科技前沿 · 学习交流是一个聚焦人工智能领域的学习与分享平台，由一群热爱技术的开发者共同创建和维护。\n\n### 我们的使命\n\n让每一位对 AI 感兴趣的学习者都能找到适合自己的学习路径，从入门到精通，从理论到实践。\n\n### 我们做什么\n\n- **AI 要闻速递**：第一时间追踪和解读人工智能领域的重要新闻与技术突破\n- **技能知识分享**：撰写和整理实战教程，涵盖 Python、机器学习、深度学习、NLP、模型部署等方向\n- **视频教程专区**：制作和精选高质量视频教程，边看边练\n- **数据可视化**：用图表呈现行业趋势、技术热度和学习数据\n- **学习社区**：打造开放的讨论和交流空间，让知识在互动中增长\n\n### 我们的团队\n\n团队成员包括 AI 领域的研究员、工程师和博士，分布在不同的城市，通过线上协作共同维护这个平台。每个人都在用自己的专业知识，为社区贡献有价值的内容。\n\n### 加入我们\n\n如果你也热爱 AI，愿意分享你的知识和见解，欢迎通过「投稿须知」了解投稿方式，或通过「联系方式」与我们取得联系。我们期待你的加入！\n\n---\n\n*AI科技前沿 · 学习交流 — 共同学习，共同成长*",
     },
     {
       id: "contribute",
       title: "投稿须知",
       navLabel: "投稿须知",
       updatedAt: "2026-08-16",
-      content: "## 投稿指南\n\n感谢您对 AI 科技前沿的关注！我们欢迎所有热爱 AI 的开发者、研究者和学习者投稿，分享您的知识、经验和见解。\n\n### 投稿类型\n\n1. **技术文章**：Python、机器学习、深度学习、NLP、模型部署等方向的技术教程和实战经验\n2. **行业要闻**：AI 领域的重要新闻、研究成果、产品发布和行业分析\n3. **技能教程**：图文并茂的实战教程，帮助读者从零开始掌握一项技能\n4. **观点评论**：对 AI 行业趋势、技术方向的深度思考和见解\n\n### 投稿要求\n\n- **原创性**：投稿内容须为原创或已获授权转载，禁止抄袭\n- **质量标准**：内容充实、逻辑清晰、代码可运行、图片清晰\n- **格式规范**：推荐使用 Markdown 格式，代码块标注语言，图片标注说明\n- **字数建议**：技术文章建议 1500 字以上，行业要闻 500 字以上\n\n### 投稿流程\n\n1. **准备内容**：将文章整理为 Markdown 格式，附上必要的图片和代码\n2. **联系编辑**：通过「联系方式」页面找到我们的邮箱或社交账号\n3. **审核反馈**：我们会在 3 个工作日内回复审核结果，如需修改会附上建议\n4. **发布上线**：审核通过后，文章将在 24 小时内发布到网站\n\n### 注意事项\n\n- 投稿即授权我们在 AI 科技前沿平台发布您的内容\n- 作者署名将保留，我们尊重每一位贡献者的劳动成果\n- 如需转载已发布的内容，请联系原作者获取授权\n- 我们保留对投稿内容的编辑和修改权\n\n---\n\n*期待您的精彩分享！*",
+      content: "## 投稿指南\n\n感谢您对 AI科技前沿 · 学习交流的关注！我们欢迎所有热爱 AI 的开发者、研究者和学习者投稿，分享您的知识、经验和见解。\n\n### 投稿类型\n\n1. **技术文章**：Python、机器学习、深度学习、NLP、模型部署等方向的技术教程和实战经验\n2. **行业要闻**：AI 领域的重要新闻、研究成果、产品发布和行业分析\n3. **技能教程**：图文并茂的实战教程，帮助读者从零开始掌握一项技能\n4. **观点评论**：对 AI 行业趋势、技术方向的深度思考和见解\n\n### 投稿要求\n\n- **原创性**：投稿内容须为原创或已获授权转载，禁止抄袭\n- **质量标准**：内容充实、逻辑清晰、代码可运行、图片清晰\n- **格式规范**：推荐使用 Markdown 格式，代码块标注语言，图片标注说明\n- **字数建议**：技术文章建议 1500 字以上，行业要闻 500 字以上\n\n### 投稿流程\n\n1. **准备内容**：将文章整理为 Markdown 格式，附上必要的图片和代码\n2. **联系编辑**：通过「联系方式」页面找到我们的邮箱或社交账号\n3. **审核反馈**：我们会在 3 个工作日内回复审核结果，如需修改会附上建议\n4. **发布上线**：审核通过后，文章将在 24 小时内发布到网站\n\n### 注意事项\n\n- 投稿即授权我们在 AI科技前沿 · 学习交流平台发布您的内容\n- 作者署名将保留，我们尊重每一位贡献者的劳动成果\n- 如需转载已发布的内容，请联系原作者获取授权\n- 我们保留对投稿内容的编辑和修改权\n\n---\n\n*期待您的精彩分享！*",
     },
     {
       id: "contact",
       title: "联系方式",
       navLabel: "联系方式",
       updatedAt: "2026-08-16",
-      content: "## 联系我们\n\n欢迎通过以下方式与 AI 科技前沿团队取得联系。\n\n### 邮箱\n\n- **投稿与合作**：发送邮件至底部社交链接中的邮箱\n- **问题反馈**：网站使用中遇到问题，欢迎邮件反馈\n\n### 社交媒体\n\n请查看网站底部的社交媒体图标，点击即可跳转到我们的官方账号。我们会在以下平台同步更新内容：\n\n- **GitHub**：开源项目和代码仓库\n- **微信**：公众号，获取最新文章推送\n- **知乎**：技术问答和深度专栏\n\n### 社区讨论\n\n如果您有 AI 相关的问题想讨论，欢迎访问首页的「学习社区」板块，发帖参与讨论。社区是开放的，每位访客都可以参与交流。\n\n### 反馈建议\n\n我们非常重视用户的反馈和建议：\n\n- 发现网站 Bug 或内容错误，请邮件告知\n- 有功能建议或改进想法，欢迎分享\n- 想要合作推广或内容互换，请邮件联系\n\n我们会认真阅读每一条反馈，并在能力范围内持续改进。\n\n---\n\n*AI 科技前沿 — 与你共同成长*",
+      content: "## 联系我们\n\n欢迎通过以下方式与 AI科技前沿 · 学习交流团队取得联系。\n\n### 邮箱\n\n- **投稿与合作**：发送邮件至底部社交链接中的邮箱\n- **问题反馈**：网站使用中遇到问题，欢迎邮件反馈\n\n### 社交媒体\n\n请查看网站底部的社交媒体图标，点击即可跳转到我们的官方账号。我们会在以下平台同步更新内容：\n\n- **GitHub**：开源项目和代码仓库\n- **微信**：公众号，获取最新文章推送\n- **知乎**：技术问答和深度专栏\n\n### 社区讨论\n\n如果您有 AI 相关的问题想讨论，欢迎访问首页的「学习社区」板块，发帖参与讨论。社区是开放的，每位访客都可以参与交流。\n\n### 反馈建议\n\n我们非常重视用户的反馈和建议：\n\n- 发现网站 Bug 或内容错误，请邮件告知\n- 有功能建议或改进想法，欢迎分享\n- 想要合作推广或内容互换，请邮件联系\n\n我们会认真阅读每一条反馈，并在能力范围内持续改进。\n\n---\n\n*AI科技前沿 · 学习交流 — 与你共同成长*",
     },
     {
       id: "privacy",
       title: "隐私政策",
       navLabel: "隐私政策",
-      updatedAt: "2026-08-16",
-      content: "## 隐私政策\n\n本政策说明 AI 科技前沿（以下简称「本站」）如何收集、使用和保护您的信息。\n\n### 信息收集\n\n本站在您使用过程中可能收集以下信息：\n\n- **社区注册信息**：当您加入学习社区时，我们会收集您的昵称和邮箱（邮箱不公开展示）\n- **互动数据**：您在社区中的点赞、评论等互动行为\n- **访问数据**：通过 Cloudflare 分析获取的匿名访问统计（IP 地址、访问页面、设备类型等），用于改善网站体验\n\n### 信息使用\n\n收集的信息仅用于以下目的：\n\n- 提供社区互动功能（评论审核、点赞去重）\n- 改善网站内容和用户体验\n- 防止垃圾信息和恶意行为\n\n我们**不会**将您的信息出售、出租或分享给任何第三方。\n\n### Cookie 与本地存储\n\n本站使用以下技术来提升体验：\n\n- **Service Worker**：用于离线缓存和 PWA 功能，不涉及个人数据\n- **localStorage**：存储主题偏好、点赞记录等本地状态，不上传服务器\n- **Cloudflare Cookies**：用于安全防护和性能优化\n\n### 数据安全\n\n- 所有数据存储在 Cloudflare KV 中，传输过程使用 HTTPS 加密\n- 管理后台需要密码认证，token 24 小期自动过期\n- 评论需经管理员审核后才会公开展示\n\n### 您的权利\n\n- 您可以随时联系我们删除您的社区注册信息\n- 您可以要求查看或更正我们持有的您的信息\n- 浏览器设置中可以清除 Cookie 和 localStorage\n\n### 政策更新\n\n本隐私政策可能会不时更新。重大变更将在网站公告中通知。继续使用本站即表示您同意本政策的最新版本。\n\n---\n\n*最后更新：2026 年 8 月*\n\n*如有疑问，请通过「联系方式」页面与我们取得联系。*",
+      updatedAt: "2026-08-19",
+      content: "## 隐私政策\n\n本政策说明 AI科技前沿 · 学习交流（以下简称「本站」）如何收集、使用和保护您的信息。\n\n### 信息收集\n\n本站在您使用过程中可能收集以下信息：\n\n- **留言信息**：您在讨论区留言时填写的昵称与留言内容（无需注册，不收集邮箱）\n- **互动数据**：您对讨论的点赞等互动行为\n- **访问数据**：通过 Cloudflare 获取的匿名访问统计（IP 地址、访问页面、设备类型等），用于改善网站体验和防止滥用（如评论频率限制、点赞去重）\n\n### 信息使用\n\n收集的信息仅用于以下目的：\n\n- 提供社区留言互动功能（评论审核、点赞去重）\n- 改善网站内容和用户体验\n- 防止垃圾信息和恶意行为\n\n我们**不会**将您的信息出售、出租或分享给任何第三方。\n\n### Cookie 与本地存储\n\n本站使用以下技术来提升体验：\n\n- **Service Worker**：用于离线缓存和 PWA 功能，不涉及个人数据\n- **localStorage**：存储主题偏好、点赞记录等本地状态，不上传服务器\n- **Cloudflare Cookies**：用于安全防护和性能优化\n\n### 数据安全\n\n- 所有数据存储在 Cloudflare KV 中，传输过程使用 HTTPS 加密\n- 管理后台需要密码认证，token 24 小时自动过期\n- 留言需经管理员审核后才会公开展示\n\n### 您的权利\n\n- 您可以随时联系我们删除您的留言信息\n- 您可以要求查看或更正我们持有的您的信息\n- 浏览器设置中可以清除 Cookie 和 localStorage\n\n### 政策更新\n\n本隐私政策可能会不时更新。重大变更将在网站公告中通知。继续使用本站即表示您同意本政策的最新版本。\n\n---\n\n*最后更新：2026 年 8 月 19 日*\n\n*如有疑问，请通过「联系方式」页面与我们取得联系。*",
+    },
+    {
+      id: "copyright",
+      title: "版权声明",
+      navLabel: "版权声明",
+      updatedAt: "2026-08-19",
+      content: "## 版权声明\n\n本页面说明 AI科技前沿 · 学习交流（以下简称「本站」）的内容版权归属与使用规范。\n\n### 本站原创内容\n\n- 本站的原创文章、教程、视频、图表和设计（含 AI 辅助生成并经人工编辑的内容）版权归本站所有，转载须注明出处并附原文链接\n- 未经授权，禁止对本站内容进行批量抓取、镜像或商业使用\n\n### 转载与聚合内容\n\n- 本站「AI 要闻」栏目以**标题 + 摘要 + 原文链接**的形式聚合行业资讯，不存储原文全文与原图\n- 转载内容均标注来源名称与原文链接，点击「查看原文」跳转至原发布页面\n- 图片素材均使用 AI 生成图片或免费图库资源，并按各图库授权协议使用\n- 视频内容均为本站自制或经官方嵌入协议（B站/YouTube 官方播放器）引用，不下载、不存储第三方视频文件\n\n### AI 生成内容标识\n\n- 本站部分内容由 AI 生成或辅助生成，会在相应位置进行标注，供读者参考判断\n\n### 字体与代码\n\n- 本站使用 Noto Sans SC、JetBrains Mono 等开源字体（OFL 协议），Chart.js 等开源库（MIT 协议），均遵守相应开源许可\n\n### 引用与合理使用\n\n- 评论区的用户留言版权归留言者本人所有，本站仅提供展示平台，留言者授权本站合理使用\n- 如您的作品被本站引用且不希望被引用，请通过「侵权投诉」页面联系我们，我们将在核实后 48 小时内处理\n\n---\n\n*最后更新：2026 年 8 月 19 日*",
+    },
+    {
+      id: "complaint",
+      title: "侵权投诉",
+      navLabel: "侵权投诉",
+      updatedAt: "2026-08-19",
+      content: "## 侵权投诉\n\n如您认为本站内容侵犯了您的著作权、肖像权、名誉权或其他合法权益,可通过以下渠道向我们投诉。我们承诺在收到有效通知后**48 小时内**处理。\n\n### 投诉邮箱\n\n**dmca@ai.feige68.dpdns.org**\n\n（如您需要更快的处理,请在邮件标题注明「侵权投诉」）\n\n### 投诉所需材料\n\n为帮助我们快速核实处理,请提供以下信息：\n\n1. **权利人信息**：您的姓名/名称、联系方式（邮箱或电话）\n2. **权属证明**：您对该内容享有合法权益的证明材料（如著作权登记证书、原创发布链接、授权文件等）\n3. **侵权内容定位**：被投诉内容在本站的具体链接（URL）及内容描述\n4. **投诉理由**：说明侵权行为的具体情况\n\n### 处理流程\n\n1. 收到投诉邮件后,我们将在 48 小时内核实\n2. 如投诉成立,立即删除或断开侵权内容链接\n3. 处理结果将通过邮件回复您\n\n### 反通知\n\n如果您是内容发布者且认为投诉不成立,可以向同一邮箱提交反通知,附上您的身份信息和理由说明。\n\n### 特别说明\n\n- 恶意投诉或虚假投诉可能承担相应法律责任\n- 涉及站内用户留言的投诉,处理时遵循「通知-删除」规则\n\n---\n\n*最后更新：2026 年 8 月 19 日*",
     },
   ],
   site_config: {
@@ -398,6 +420,8 @@ const SEED = {
       { label: "投稿须知", url: "page.html?id=contribute" },
       { label: "联系方式", url: "page.html?id=contact" },
       { label: "隐私政策", url: "page.html?id=privacy" },
+      { label: "版权声明", url: "page.html?id=copyright" },
+      { label: "侵权投诉", url: "page.html?id=complaint" },
     ],
     charts: {
       trend: {
@@ -459,6 +483,22 @@ function nowString() {
   return d.toISOString().slice(0, 10) + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + ":" + String(d.getSeconds()).padStart(2, "0");
 }
 
+/* ===== 敏感词过滤（留言/昵称强制校验，与前端提示层保持同源） ===== */
+const SENSITIVE_WORDS = [
+  "代开发票", "发票代开", "办证", "贷款", "套现", "刷单", "兼职日结",
+  "加微信", "加QQ", "加qq", "v信", "威信号", "扫码进群", "博彩", "赌博",
+  "色情", "成人片", "裸聊", "一夜情", "小姐", "枪支", "毒品", "冰毒",
+  "赌博网", "六合彩", "时时彩", "赚外快", "躺赚", "日赚",
+];
+
+function containsSensitive(text) {
+  if (!text) return null;
+  for (const w of SENSITIVE_WORDS) {
+    if (text.indexOf(w) !== -1) return w;
+  }
+  return null;
+}
+
 /* ===== 阅读量递增 ===== */
 function incrementReads(reads) {
   if (!reads) return "1";
@@ -473,13 +513,57 @@ function incrementReads(reads) {
   return String(num);
 }
 
+/* ===== 审核日志（操作留痕，可追溯） ===== */
+async function appendAuditLog(env, entry) {
+  try {
+    const logs = await kvGetJSON(env, "audit_log", []);
+    logs.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), ts: nowString(), ...entry });
+    /* 只保留最近 500 条 */
+    if (logs.length > 500) logs.length = 500;
+    await env.CONTENT_KV.put("audit_log", JSON.stringify(logs));
+  } catch (e) {
+    /* 日志写入失败不影响主流程 */
+  }
+}
+
 /* ===== 主处理器 ===== */
 export async function onRequest(context) {
   const { request, env } = context;
 
+  /* 同源响应 + 白名单 Origin 动态回显（闭包内 json 使用） */
+  function json(data, status = 200) {
+    return new Response(JSON.stringify(data), {
+      status,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": request.headers.get("Origin") || "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
+  }
+
+  /* Origin 白名单校验：非本站/非本地开发来源一律拒绝（防跨站刷接口/CSRF） */
+  const reqOrigin = request.headers.get("Origin");
+  if (reqOrigin && !ALLOWED_ORIGINS.includes(reqOrigin)) {
+    return new Response(JSON.stringify({ error: "跨域请求被拒绝", code: "CORS_DENIED" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": reqOrigin },
+    });
+  }
+
   /* CORS 预检 */
   if (request.method === "OPTIONS") {
-    return new Response(null, { headers: CORS_HEADERS });
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": reqOrigin || "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Max-Age": "86400",
+      },
+    });
   }
 
   /* 检查 KV 绑定 */
@@ -496,6 +580,10 @@ export async function onRequest(context) {
 
   /* ===== 认证路由 ===== */
 
+  /* 登录失败限流参数：同 IP 连续失败 5 次 → 锁定 15 分钟 */
+  const LOGIN_MAX_FAILS = 5;
+  const LOGIN_LOCK_MS = 15 * 60 * 1000;
+
   /* POST /api/auth/login — 登录 */
   if (path === "auth/login" && method === "POST") {
     let body;
@@ -503,6 +591,16 @@ export async function onRequest(context) {
       body = await request.json();
     } catch {
       return json({ error: "请求格式错误" }, 400);
+    }
+
+    /* 登录失败锁定检查（防暴力破解） */
+    const loginIp = clientIP(request);
+    const failKey = "auth_fail:" + loginIp;
+    const lockKey = "auth_lock:" + loginIp;
+    const lockedUntil = await env.CONTENT_KV.get(lockKey);
+    if (lockedUntil && Date.now() < parseInt(lockedUntil, 10)) {
+      const remainMin = Math.ceil((parseInt(lockedUntil, 10) - Date.now()) / 60000);
+      return json({ error: "尝试次数过多，请 " + remainMin + " 分钟后再试", code: "LOGIN_LOCKED" }, 429);
     }
 
     const adminPassword = env.ADMIN_PASSWORD || (await env.CONTENT_KV.get("auth:password"));
@@ -518,12 +616,34 @@ export async function onRequest(context) {
     }
 
     if (body.password !== adminPassword) {
-      return json({ error: "密码错误" }, 401);
+      /* 记录失败次数 */
+      const fails = parseInt((await env.CONTENT_KV.get(failKey)) || "0", 10) + 1;
+      if (fails >= LOGIN_MAX_FAILS) {
+        await env.CONTENT_KV.put(lockKey, String(Date.now() + LOGIN_LOCK_MS), { expirationTtl: Math.ceil(LOGIN_LOCK_MS / 1000) });
+        await env.CONTENT_KV.delete(failKey);
+        await appendAuditLog(env, {
+          action: "login_lock",
+          target: "IP " + loginIp,
+          ip: loginIp,
+        });
+        return json({ error: "尝试次数过多，已锁定 15 分钟", code: "LOGIN_LOCKED" }, 429);
+      }
+      await env.CONTENT_KV.put(failKey, String(fails), { expirationTtl: 1800 });
+      return json({ error: "密码错误（还可尝试 " + (LOGIN_MAX_FAILS - fails) + " 次）" }, 401);
     }
+
+    /* 登录成功：清除失败记录并签发 token */
+    await env.CONTENT_KV.delete(failKey);
+    await env.CONTENT_KV.delete(lockKey);
+    await appendAuditLog(env, {
+      action: "login_success",
+      target: "IP " + loginIp,
+      ip: loginIp,
+    });
 
     const token = generateToken();
     const expires = Date.now() + 24 * 60 * 60 * 1000; // 24 小时
-    await env.CONTENT_KV.put("auth:token:" + token, JSON.stringify({ expires }));
+    await env.CONTENT_KV.put("auth:token:" + token, JSON.stringify({ expires, ip: loginIp }));
     return json({ token, expires });
   }
 
@@ -625,36 +745,9 @@ export async function onRequest(context) {
 
   /* ===== 社区互动（公开，无需登录） ===== */
 
-  /* POST /api/community/join — 加入社区 */
+  /* POST /api/community/join — 已停用：取消公共注册，仅保留留言讨论 */
   if (path === "community/join" && method === "POST") {
-    let body;
-    try { body = await request.json(); } catch { return json({ error: "请求格式错误" }, 400); }
-
-    const nickname = (body.nickname || "").trim();
-    const email = (body.email || "").trim();
-    if (!isValidName(nickname)) return json({ error: "昵称需为 2-20 个字符" }, 400);
-    if (!isValidEmail(email)) return json({ error: "邮箱格式不正确" }, 400);
-
-    const members = await kvGetJSON(env, "members", []);
-    /* 同邮箱 60 秒内重复注册拦截 */
-    const recent = members.find(function (m) {
-      return m.email === email && Date.now() - (m._ts || 0) < 60000;
-    });
-    if (recent) return json({ error: "该邮箱刚注册过，请稍后再试" }, 429);
-
-    const newMember = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      nickname: nickname,
-      email: email,
-      date: nowString(),
-      _ts: Date.now(),
-    };
-    members.unshift(newMember);
-    await env.CONTENT_KV.put("members", JSON.stringify(members));
-
-    /* 移除内部时间戳再返回 */
-    const { _ts, ...safe } = newMember;
-    return json({ success: true, message: "加入成功，欢迎！", data: safe });
+    return json({ error: "社区注册已关闭，请直接在讨论区留言（无需注册）", code: "JOIN_CLOSED" }, 410);
   }
 
   /* POST /api/community/like — 讨论点赞（IP 去重） */
@@ -693,6 +786,13 @@ export async function onRequest(context) {
     const content = (body.content || "").trim();
     if (!isValidName(nickname)) return json({ error: "昵称需为 2-20 个字符" }, 400);
     if (content.length < 5 || content.length > 500) return json({ error: "评论内容需为 5-500 字" }, 400);
+
+    /* 敏感词过滤（强制，昵称+内容都查） */
+    const badName = containsSensitive(nickname);
+    const badContent = containsSensitive(content);
+    if (badName || badContent) {
+      return json({ error: "留言包含违规内容（" + (badName || badContent) + "），请修改后提交", code: "SENSITIVE" }, 400);
+    }
 
     const discussions = await kvGetJSON(env, "discussions", []);
     const d = discussions.find(function (x) { return x.id === discussionId; });
@@ -867,6 +967,9 @@ export async function onRequest(context) {
     if (scope === "comments") {
       return json({ data: await kvGetJSON(env, "comments", []) });
     }
+    if (scope === "logs") {
+      return json({ data: await kvGetJSON(env, "audit_log", []) });
+    }
     return json({ error: "未知 scope: " + scope }, 400);
   }
 
@@ -889,6 +992,15 @@ export async function onRequest(context) {
     const comments = await kvGetJSON(env, "comments", []);
     comments.unshift(approved);
     await env.CONTENT_KV.put("comments", JSON.stringify(comments));
+
+    /* 审核日志 */
+    await appendAuditLog(env, {
+      action: "approve_comment",
+      targetId: id,
+      target: approved.nickname + "（" + approved.discussionTitle + "）",
+      ip: clientIP(request),
+    });
+
     return json({ success: true, data: approved });
   }
 
@@ -920,6 +1032,17 @@ export async function onRequest(context) {
     const items = await kvGetJSON(env, from, []);
     const filtered = items.filter(function (c) { return c.id !== id; });
     await env.CONTENT_KV.put(from, JSON.stringify(filtered));
+
+    /* 审核日志 */
+    const removed = items.find(function (c) { return c.id === id; });
+    await appendAuditLog(env, {
+      action: "delete_comment",
+      source: from === "pending_comments" ? "pending" : "approved",
+      targetId: id,
+      target: removed ? removed.nickname + "（" + (removed.discussionTitle || removed.discussionId) + "）" : id,
+      ip: clientIP(request),
+    });
+
     return json({ success: true, remaining: filtered.length });
   }
 
@@ -962,35 +1085,101 @@ export async function onRequest(context) {
 
   /* ===== 初始化种子数据 ===== */
 
-  /* POST /api/init — 初始化（需认证） */
+  /* POST /api/init — 初始化（需认证）
+   * 默认「补全模式」：只写入缺失的种子条目，绝不覆盖用户已有数据
+   *   - 数组类型（articles/skills/videos/discussions/contributors/pages）：按 id 去重补缺
+   *   - site_config：浅合并，已有字段保留用户配置
+   *   - members / pending_comments / comments（用户数据）：完全不动
+   * 传 force=1（query 或 body）→ 全量重置为种子数据（慎用！会清空所有后台数据） */
   if (path === "init" && method === "POST") {
     if (!(await verifyAuth(request, env))) {
       return json({ error: "未授权，请先登录" }, 401);
     }
 
+    let force = url.searchParams.get("force") === "1";
+    if (!force) {
+      try {
+        const b = await request.json();
+        if (b && b.force === true) force = true;
+      } catch (e) { /* 无 body 时保持补全模式 */ }
+    }
+
     const results = {};
+
     for (const [key, value] of Object.entries(SEED)) {
+      /* 用户数据：任何模式下都不触碰（force 全量重置同样跳过，保护用户内容） */
+      if (key === "members" || key === "pending_comments" || key === "comments") {
+        results[key] = "skipped(用户数据)";
+        continue;
+      }
+
+      /* 全量重置模式：直接覆盖为种子 */
+      if (force) {
+        if (key === "articles" || key === "skills" || key === "pages") {
+          const prefix = key === "articles" ? "article:" : (key === "skills" ? "skill:" : "page:");
+          const metaData = value.map(function (a) {
+            const { content, ...meta } = a;
+            return meta;
+          });
+          await env.CONTENT_KV.put(key, JSON.stringify(metaData));
+          for (const a of value) {
+            if (a.content) {
+              await env.CONTENT_KV.put(prefix + a.id, a.content);
+            }
+          }
+          results[key] = value.length;
+        } else {
+          await env.CONTENT_KV.put(key, JSON.stringify(value));
+          results[key] = Array.isArray(value) ? value.length : Object.keys(value).length;
+        }
+        continue;
+      }
+
+      /* ===== 补全模式 ===== */
+
+      /* site_config：浅合并，已有字段保留用户配置 */
+      if (key === "site_config") {
+        const existing = await kvGetJSON(env, "site_config", {});
+        const merged = { ...value, ...existing };
+        await env.CONTENT_KV.put("site_config", JSON.stringify(merged));
+        results[key] = "merged(保留现有配置)";
+        continue;
+      }
+
+      /* 数组类型：按 id 去重，只补缺失条目 */
+      const existing = await kvGetJSON(env, key, []);
+      const existingIds = new Set(existing.map(function (x) { return x && x.id; }));
+      const missing = (value || []).filter(function (x) {
+        return x && x.id && !existingIds.has(x.id);
+      });
+
+      if (missing.length === 0) {
+        results[key] = "noop(无缺失)";
+        continue;
+      }
+
       if (key === "articles" || key === "skills" || key === "pages") {
-        /* 文章/技能/页面：分离存储元数据和正文 */
+        /* 正文分离存储 */
         const prefix = key === "articles" ? "article:" : (key === "skills" ? "skill:" : "page:");
-        const metaData = value.map(function (a) {
-          const { content, ...meta } = a;
-          return meta;
-        });
-        await env.CONTENT_KV.put(key, JSON.stringify(metaData));
-        /* 每篇正文单独写入 */
-        for (const a of value) {
+        for (const a of missing) {
           if (a.content) {
             await env.CONTENT_KV.put(prefix + a.id, a.content);
           }
         }
-        results[key] = value.length;
+        const merged = existing.concat(missing);
+        await env.CONTENT_KV.put(key, JSON.stringify(merged));
+        results[key] = "+" + missing.length + " 条(保留原有 " + existing.length + " 条)";
       } else {
-        await env.CONTENT_KV.put(key, JSON.stringify(value));
-        results[key] = Array.isArray(value) ? value.length : Object.keys(value).length;
+        const merged = existing.concat(missing);
+        await env.CONTENT_KV.put(key, JSON.stringify(merged));
+        results[key] = "+" + missing.length + " 条(保留原有 " + existing.length + " 条)";
       }
     }
-    return json({ success: true, message: "数据初始化完成", counts: results });
+    return json({
+      success: true,
+      message: force ? "数据已重置(用户数据已保护)" : "初始化完成：补全模式，已有数据全部保留",
+      counts: results,
+    });
   }
 
   /* GET /api/init/status — 检查初始化状态 */
