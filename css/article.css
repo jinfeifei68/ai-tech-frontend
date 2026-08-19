@@ -160,6 +160,61 @@
   background: rgba(0, 212, 255, 0.05);
 }
 
+/* 原文来源标注（转载/聚合内容） */
+.article-header__source {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--surface-secondary, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.article-header__source-label {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.article-header__source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-cyan);
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.article-header__source-link:hover {
+  text-decoration: underline;
+}
+
+.article-header__source-link svg {
+  flex-shrink: 0;
+}
+
+/* AI 生成内容显式标识 */
+.ai-disclosure {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 28px auto 0;
+  max-width: 720px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--surface-secondary, rgba(124, 77, 255, 0.06));
+  border: 1px solid rgba(124, 77, 255, 0.35);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.ai-disclosure__icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
 /* ===== Hero Image ===== */
 .article-hero {
   width: 100%;

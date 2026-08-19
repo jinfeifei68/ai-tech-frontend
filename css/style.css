@@ -677,6 +677,35 @@ input {
   color: #000;
 }
 
+.news-card__source {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 1;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  backdrop-filter: blur(8px);
+}
+
+/* AI 生成角标（合规显式标识） */
+.news-card__ai {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: rgba(124, 77, 255, 0.85);
+  color: #fff;
+  backdrop-filter: blur(8px);
+}
+
 .news-card__body {
   padding: 20px;
   display: flex;
