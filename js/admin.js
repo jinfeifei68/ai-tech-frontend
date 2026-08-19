@@ -1,5 +1,5 @@
 /**
- * AI科技前沿 — 管理后台逻辑
+ * AI科技前沿 · 学习交流 — 管理后台逻辑
  * ============================================ */
 
 (function () {
@@ -277,10 +277,10 @@
         <ul>
           <li>点击左侧导航栏进入对应内容管理页面</li>
           <li>每页可新增、编辑、删除内容，修改即时生效</li>
-          <li>「评论审核」页可审核访客提交的评论，通过后展示在前台</li>
-          <li>「成员管理」页可查看前台「加入社区」表单的注册名单</li>
+          <li>「评论审核」页可审核访客提交的留言，通过后展示在前台（含操作日志）</li>
+          <li>「成员管理」页保留早期注册名单，可清理历史数据</li>
           <li>「网站配置」页可修改首页统计数据、学习路径等</li>
-          <li>「初始化数据」按钮可恢复所有内容为初始状态（谨慎使用）</li>
+          <li>「初始化数据」按钮为安全补全模式：只补充缺失的默认内容，已有数据全部保留</li>
           <li>所有修改直接写入 Cloudflare KV，前台刷新即可看到更新</li>
         </ul>
       </div>
@@ -373,6 +373,16 @@
       <div class="form-group">
         <label>图片 URL</label>
         <input type="url" id="f_image" value="${a ? escapeHtml(a.image) : ""}" placeholder="https://...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>来源名称 <span style="font-size:0.75rem;color:var(--text-tertiary)">(转载时填，如：机器之心)</span></label>
+          <input type="text" id="f_source" value="${a ? escapeHtml(a.source) : ""}" placeholder="如：机器之心 / 量子位">
+        </div>
+        <div class="form-group">
+          <label>原文链接 <span style="font-size:0.75rem;color:var(--text-tertiary)">(跳转原文，本站不存全文)</span></label>
+          <input type="url" id="f_sourceUrl" value="${a ? escapeHtml(a.sourceUrl) : ""}" placeholder="https://原文地址...">
+        </div>
       </div>
       <div class="form-group">
         <label>摘要</label>
@@ -476,6 +486,8 @@
       content: val("f_content"),
       badgeType: val("f_badgeType"),
       featured: document.getElementById("f_featured").checked,
+      source: val("f_source"),
+      sourceUrl: val("f_sourceUrl"),
     };
     if (!data.title) { toast("请输入标题", "error"); return; }
     try {
@@ -732,10 +744,12 @@
         <input type="url" id="f_src" value="${v ? escapeHtml(v.src) : ""}" placeholder="https://...mp4">
       </div>
       <div class="form-group">
-        <label>嵌入播放地址 <span style="font-size:0.8rem;color:var(--text-tertiary)">B站等外站视频，优先于 mp4</span></label>
+        <label>嵌入播放地址 <span style="font-size:0.8rem;color:var(--text-tertiary)">B站/YouTube 官方嵌入，优先于 mp4</span></label>
         <input type="url" id="f_embed" value="${v ? escapeHtml(v.embed || "") : ""}" placeholder="https://player.bilibili.com/player.html?bvid=BVxxxx">
-        <div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:4px">
-          获取方法：B站视频 → 分享 → 嵌入代码 → 复制 iframe 里的 src 地址（以 player.bilibili.com 开头）
+        <div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:4px;line-height:1.7">
+          <div>B站：视频页 → 分享 → 嵌入代码 → 复制 iframe 的 src（player.bilibili.com 开头）</div>
+          <div>YouTube：视频页 → 分享 → 嵌入 → 复制 iframe 的 src（www.youtube.com/embed/ 开头）</div>
+          <div>⚠️ 仅用官方嵌入，切勿下载第三方视频存到本站服务器</div>
         </div>
       </div>
       <div class="form-group">
@@ -1038,8 +1052,8 @@
     });
   }
 
-  /* ===== 社区管理（成员 / 评论审核） ===== */
-  var communityData = { members: [], pending: [], comments: [] };
+  /* ===== 社区管理（成员 / 评论审核 / 操作日志） ===== */
+  var communityData = { members: [], pending: [], comments: [], logs: [] };
 
   async function loadCommunityAdminData() {
     try {
@@ -1047,14 +1061,16 @@
         api("/community/admin?scope=members"),
         api("/community/admin?scope=pending"),
         api("/community/admin?scope=comments"),
+        api("/community/admin?scope=logs"),
       ]);
       communityData = {
         members: results[0].data || [],
         pending: results[1].data || [],
         comments: results[2].data || [],
+        logs: results[3].data || [],
       };
     } catch (e) {
-      communityData = { members: [], pending: [], comments: [] };
+      communityData = { members: [], pending: [], comments: [], logs: [] };
     }
     return communityData;
   }
@@ -1097,13 +1113,30 @@
     });
   }
 
-  /* --- 评论审核（待审 / 已通过，页内切换） --- */
+  /* --- 评论审核（待审 / 已通过 / 操作日志，页内切换） --- */
   async function renderComments(tab) {
     var data = await loadCommunityAdminData();
     var pending = data.pending || [];
     var approved = data.comments || [];
-    var activeTab = tab === "approved" ? "approved" : "pending";
-    var items = activeTab === "pending" ? pending : approved;
+    var logs = data.logs || [];
+    var activeTab = tab === "approved" ? "approved" : (tab === "logs" ? "logs" : "pending");
+
+    var logsHTML = "";
+    if (activeTab === "logs") {
+      logsHTML = logs.length === 0
+        ? '<div class="empty-tip">暂无操作日志（审核/删除评论时会记录）</div>'
+        : logs.map(function (l) {
+          var actionText = l.action === "approve_comment" ? "通过审核" : (l.action === "delete_comment" ? "删除评论" : l.action);
+          return `
+          <div class="comment-card">
+            <div class="comment-card__head">
+              <span class="comment-card__author">${escapeHtml(actionText)}</span>
+              <span class="comment-card__meta">${escapeHtml(l.ts || "")} · ${escapeHtml(l.target || l.targetId || "")}</span>
+            </div>
+            <p class="comment-card__text" style="color:var(--text-tertiary);font-size:0.8rem">IP: ${escapeHtml(l.ip || "unknown")} · ID: ${escapeHtml(l.targetId || "")}</p>
+          </div>`;
+        }).join("");
+    }
 
     adminMain.innerHTML = `
       <div class="section-admin-header">
@@ -1113,24 +1146,33 @@
       <div class="admin-tabs">
         <button class="admin-tabs__btn ${activeTab === "pending" ? "active" : ""}" onclick="window.__admin.renderComments('pending')">⏳ 待审核 (${pending.length})</button>
         <button class="admin-tabs__btn ${activeTab === "approved" ? "active" : ""}" onclick="window.__admin.renderComments('approved')">✅ 已通过 (${approved.length})</button>
+        <button class="admin-tabs__btn ${activeTab === "logs" ? "active" : ""}" onclick="window.__admin.renderComments('logs')">📋 操作日志</button>
       </div>
-      ${items.length === 0 ? '<div class="empty-tip">' + (activeTab === "pending" ? "暂无待审核评论" : "暂无已审核评论") + '</div>' : items.map(function (c) {
-        return `
-        <div class="comment-card">
-          <div class="comment-card__head">
-            <span class="comment-card__author">${escapeHtml(c.nickname)}</span>
-            <span class="comment-card__meta">${escapeHtml(c.date || "")} · 讨论：${escapeHtml(c.discussionTitle || c.discussionId)}</span>
-          </div>
-          <p class="comment-card__text">${escapeHtml(c.content)}</p>
-          <div class="comment-card__actions">
-            ${activeTab === "pending"
-              ? `<button class="btn btn--primary btn--sm" onclick="window.__admin.approveComment('${c.id}')">✓ 通过</button>
-                 <button class="btn btn--outline btn--sm" onclick="window.__admin.deleteComment('${c.id}', 'pending')">🗑 删除</button>`
-              : `<button class="btn btn--outline btn--sm" onclick="window.__admin.deleteComment('${c.id}', 'comments')">🗑 删除</button>`}
-          </div>
-        </div>`;
-      }).join("")}
+      ${activeTab === "logs"
+        ? logsHTML
+        : (itemsForTab(activeTab, pending, approved).length === 0
+          ? '<div class="empty-tip">' + (activeTab === "pending" ? "暂无待审核评论" : "暂无已审核评论") + '</div>'
+          : itemsForTab(activeTab, pending, approved).map(function (c) {
+            return `
+            <div class="comment-card">
+              <div class="comment-card__head">
+                <span class="comment-card__author">${escapeHtml(c.nickname)}</span>
+                <span class="comment-card__meta">${escapeHtml(c.date || "")} · 讨论：${escapeHtml(c.discussionTitle || c.discussionId)}</span>
+              </div>
+              <p class="comment-card__text">${escapeHtml(c.content)}</p>
+              <div class="comment-card__actions">
+                ${activeTab === "pending"
+                  ? `<button class="btn btn--primary btn--sm" onclick="window.__admin.approveComment('${c.id}')">✓ 通过</button>
+                     <button class="btn btn--outline btn--sm" onclick="window.__admin.deleteComment('${c.id}', 'pending')">🗑 删除</button>`
+                  : `<button class="btn btn--outline btn--sm" onclick="window.__admin.deleteComment('${c.id}', 'comments')">🗑 删除</button>`}
+              </div>
+            </div>`;
+          }).join(""))}
     `;
+  }
+
+  function itemsForTab(tab, pending, approved) {
+    return tab === "pending" ? pending : approved;
   }
 
   async function approveComment(id) {
@@ -1297,7 +1339,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>站点名称（导航栏 Logo 文字 / 浏览器标题）</label>
-            <input type="text" id="config_siteName" value="${escapeHtml(config.siteName || "")}" placeholder="如 AI科技前沿">
+            <input type="text" id="config_siteName" value="${escapeHtml(config.siteName || "")}" placeholder="如 AI科技前沿 · 学习交流">
           </div>
           <div class="form-group">
             <label>全站字号</label>
@@ -1334,7 +1376,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>底部版权文字</label>
-            <input type="text" id="config_footerCopy" value="${escapeHtml(config.footerCopy || "")}" placeholder="如 © 2026 AI科技前沿 · 共同学习，共同成长">
+            <input type="text" id="config_footerCopy" value="${escapeHtml(config.footerCopy || "")}" placeholder="如 © 2026 AI科技前沿 · 学习交流 · 共同学习，共同成长">
           </div>
           <div class="form-group">
             <label>底部技术署名</label>
@@ -1707,15 +1749,24 @@
   }
 
   /* ===== 初始化数据 ===== */
+  /* 安全补全模式：只补缺失的种子条目（如新页面/新示例），已有内容、评论、成员全部保留 */
   async function initData() {
-    confirmDialog("初始化数据", "此操作将覆盖所有现有内容，恢复为初始数据。确定继续？", async function () {
-      try {
-        var result = await api("/init", { method: "POST" });
-        toast("数据初始化完成", "success");
-        await loadAllContent();
-        renderSection(currentSection);
-      } catch (e) { toast(e.message, "error"); }
-    });
+    confirmDialog(
+      "初始化数据",
+      "安全补全模式：仅补充缺失的默认内容（如版权声明/侵权投诉页），已有文章、评论、成员全部保留。确定继续？",
+      async function () {
+        try {
+          var result = await api("/init", { method: "POST" });
+          var detail = result.counts
+            ? Object.keys(result.counts).map(function (k) { return k + "：" + result.counts[k]; }).join("；")
+            : "";
+          toast("初始化完成（已保留全部现有数据）", "success");
+          if (detail) setTimeout(function () { toast(detail, "info"); }, 200);
+          await loadAllContent();
+          renderSection(currentSection);
+        } catch (e) { toast(e.message, "error"); }
+      }
+    );
   }
 
   /* ===== 辅助函数 ===== */

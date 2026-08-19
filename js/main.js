@@ -1,5 +1,5 @@
 /**
- * AI科技前沿 — 交互逻辑 & 数据可视化
+ * AI科技前沿 · 学习交流 — 交互逻辑 & 数据可视化
  * ============================================ */
 
 (function () {
@@ -571,53 +571,6 @@
     chartObserver.observe(chartSection);
   }
 
-  /* ===== 加入社区表单（真实注册 → 写入 KV） ===== */
-  var joinForm = document.querySelector(".join-form");
-  if (joinForm) {
-    joinForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var nameInput = joinForm.querySelector('input[aria-label="昵称"]');
-      var emailInput = joinForm.querySelector('input[aria-label="邮箱"]');
-      var btn = joinForm.querySelector('button[type="submit"]');
-      var note = joinForm.querySelector(".join-card__note");
-      var originalNote = note ? note.innerHTML : "";
-      var name = nameInput.value.trim();
-      var email = emailInput.value.trim();
-
-      if (!name || !email) return;
-      btn.disabled = true;
-      btn.textContent = "提交中...";
-
-      fetch("/api/community/join", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nickname: name, email: email }),
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (res) {
-          if (res.success) {
-            btn.textContent = "✓ 加入成功！";
-            btn.style.background = "var(--accent-green)";
-            if (note) note.innerHTML = "✅ 已登记，欢迎加入！";
-            joinForm.reset();
-          } else {
-            alert(res.error || "加入失败，请稍后再试");
-          }
-          setTimeout(function () {
-            btn.disabled = false;
-            btn.textContent = "立即加入";
-            btn.style.background = "";
-            if (note) note.innerHTML = originalNote;
-          }, 2500);
-        })
-        .catch(function () {
-          alert("网络错误，请稍后再试");
-          btn.disabled = false;
-          btn.textContent = "立即加入";
-        });
-    });
-  }
-
   /* ===== fadeInUp 动画关键帧（动态注入） ===== */
   var style = document.createElement("style");
   style.textContent =
@@ -679,6 +632,7 @@
       var bc = a.badgeType === "hot" ? " news-card__badge--hot" : a.badgeType === "new" ? " news-card__badge--new" : "";
       return '<article class="news-card' + feat + ' reveal reveal--visible" data-category="' + esc(a.category) + '" data-id="' + esc(a.id) + '" style="cursor:pointer">' +
         '<div class="news-card__img lazy-img" data-bg="' + esc(a.image) + '">' +
+        '<span class="news-card__ai">AI 生成</span>' +
         (a.badge ? '<span class="news-card__badge' + bc + '">' + esc(a.badge) + '</span>' : '') +
         '</div><div class="news-card__body">' +
         '<span class="news-card__cat">' + esc(catLabels[a.category] || a.category) + '</span>' +
@@ -898,7 +852,7 @@
         '<button type="button" class="discussion-reply__toggle" data-id="' + esc(d.id) + '">💬 我也说两句</button>' +
         '<form class="reply-form" data-id="' + esc(d.id) + '" style="display:none">' +
         '<div class="reply-form__row"><input type="text" class="reply-form__name" placeholder="你的昵称（2-20字）" maxlength="20" required>' +
-        '<button type="submit" class="btn btn--primary btn--sm">提交评论</button></div>' +
+        '<button type="submit" class="btn btn--primary btn--sm">提交留言</button></div>' +
         '<textarea class="reply-form__content" placeholder="写下你的见解...（5-500字），审核通过后展示" maxlength="500" required></textarea>' +
         '</form></div>' +
         '</div></div>';
@@ -996,7 +950,20 @@
           return;
         }
         if (content.length < 5 || content.length > 500) {
-          alert("评论内容需为 5-500 字");
+          alert("留言内容需为 5-500 字");
+          return;
+        }
+        /* 敏感词过滤（前端提示层） */
+        var badWord = null;
+        var SENSITIVE = ["代开发票", "发票代开", "办证", "贷款", "套现", "刷单", "兼职日结", "加微信", "加QQ", "加qq", "v信", "威信号", "扫码进群", "博彩", "赌博", "色情", "成人片", "裸聊", "一夜情", "小姐", "枪支", "毒品", "冰毒", "赌博网", "六合彩", "时时彩", "赚外快", "躺赚", "日赚"];
+        for (var si = 0; si < SENSITIVE.length; si++) {
+          if (name.indexOf(SENSITIVE[si]) !== -1 || content.indexOf(SENSITIVE[si]) !== -1) {
+            badWord = SENSITIVE[si];
+            break;
+          }
+        }
+        if (badWord) {
+          alert("留言包含违规内容（" + badWord + "），请修改后提交");
           return;
         }
         submitBtn.disabled = true;
@@ -1011,17 +978,17 @@
             if (res.success) {
               form.reset();
               form.style.display = "none";
-              alert("评论已提交，审核通过后会展示在讨论区");
+              alert("留言已提交，审核通过后会展示在讨论区");
             } else {
               alert(res.error || "提交失败，请稍后再试");
             }
             submitBtn.disabled = false;
-            submitBtn.textContent = "提交评论";
+            submitBtn.textContent = "提交留言";
           })
           .catch(function () {
             alert("网络错误，请稍后再试");
             submitBtn.disabled = false;
-            submitBtn.textContent = "提交评论";
+            submitBtn.textContent = "提交留言";
           });
       });
     });

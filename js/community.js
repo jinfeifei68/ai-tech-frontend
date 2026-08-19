@@ -1,5 +1,5 @@
 /**
- * AI科技前沿 — 学习交流社区独立页逻辑
+ * AI科技前沿 · 学习交流 — 学习交流社区独立页逻辑
  * ============================================ */
 
 (function () {
@@ -177,7 +177,7 @@
       '<button type="button" class="discussion-reply__toggle" data-id="' + esc(d.id) + '">💬 我也说两句</button>' +
       '<form class="reply-form" data-id="' + esc(d.id) + '" style="display:none">' +
       '<div class="reply-form__row"><input type="text" class="reply-form__name" placeholder="你的昵称（2-20字）" maxlength="20" required>' +
-      '<button type="submit" class="btn btn--primary btn--sm">提交评论</button></div>' +
+      '<button type="submit" class="btn btn--primary btn--sm">提交留言</button></div>' +
       '<textarea class="reply-form__content" placeholder="写下你的见解...（5-500字），审核通过后展示" maxlength="500" required></textarea>' +
       '</form></div>' +
       '</div></div>';
@@ -311,7 +311,12 @@
           return;
         }
         if (content.length < 5 || content.length > 500) {
-          alert("评论内容需为 5-500 字");
+          alert("留言内容需为 5-500 字");
+          return;
+        }
+        var bad = containsSensitive(name) || containsSensitive(content);
+        if (bad) {
+          alert("留言包含违规内容（" + bad + "），请修改后提交");
           return;
         }
         submitBtn.disabled = true;
@@ -326,20 +331,38 @@
             if (res.success) {
               form.reset();
               form.style.display = "none";
-              alert("评论已提交，审核通过后会展示在讨论区");
+              alert("留言已提交，审核通过后会展示在讨论区");
             } else {
               alert(res.error || "提交失败，请稍后再试");
             }
             submitBtn.disabled = false;
-            submitBtn.textContent = "提交评论";
+            submitBtn.textContent = "提交留言";
           })
           .catch(function () {
             alert("网络错误，请稍后再试");
             submitBtn.disabled = false;
-            submitBtn.textContent = "提交评论";
+            submitBtn.textContent = "提交留言";
           });
       });
     });
+  }
+
+  /* ===== 敏感词过滤（前端提示层，后端仍有强制校验） ===== */
+  var SENSITIVE_WORDS = [
+    "代开发票", "发票代开", "办证", "贷款", "套现", "刷单", "兼职日结",
+    "加微信", "加QQ", "加qq", "v信", "威信号", "扫码进群", "博彩", "赌博",
+    "色情", "成人片", "裸聊", "一夜情", "小姐", "枪支", "毒品", "冰毒",
+    "赌博网", "六合彩", "时时彩", "赚外快", "躺赚", "日赚",
+  ];
+
+  function containsSensitive(text) {
+    if (!text) return null;
+    for (var i = 0; i < SENSITIVE_WORDS.length; i++) {
+      if (text.indexOf(SENSITIVE_WORDS[i]) !== -1) {
+        return SENSITIVE_WORDS[i];
+      }
+    }
+    return null;
   }
 
   /* ===== 贡献者列表 ===== */
@@ -352,57 +375,6 @@
         '<span class="contributor-list__name">' + esc(c.name) + '</span>' +
         '<span class="contributor-list__score">' + esc(c.score) + '</span></li>';
     }).join("");
-  }
-
-  /* ===== 加入社区表单 ===== */
-  function bindJoinForm() {
-    var joinForm = document.querySelector(".join-form");
-    if (!joinForm || joinForm.getAttribute("data-bound")) return;
-    joinForm.setAttribute("data-bound", "1");
-    joinForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var nameInput = joinForm.querySelector('input[aria-label="昵称"]');
-      var emailInput = joinForm.querySelector('input[aria-label="邮箱"]');
-      var btn = joinForm.querySelector('button[type="submit"]');
-      var note = joinForm.querySelector(".join-card__note");
-      var originalNote = note ? note.innerHTML : "";
-      var name = nameInput.value.trim();
-      var email = emailInput.value.trim();
-
-      if (!name || !email) return;
-      btn.disabled = true;
-      btn.textContent = "提交中...";
-
-      fetch("/api/community/join", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nickname: name, email: email }),
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (res) {
-          if (res.success) {
-            btn.textContent = "✓ 加入成功！";
-            btn.style.background = "var(--accent-green)";
-            if (note) note.innerHTML = "✅ 已登记，欢迎加入！";
-            joinForm.reset();
-          } else {
-            alert(res.error || "加入失败，请稍后再试");
-          }
-          setTimeout(function () {
-            btn.disabled = false;
-            btn.textContent = "立即加入";
-            btn.style.background = "";
-            if (note) note.innerHTML = originalNote;
-          }, 2500);
-        })
-        .catch(function () {
-          alert("网络错误，请稍后再试");
-          btn.disabled = false;
-          btn.textContent = "立即加入";
-          btn.style.background = "";
-          if (note) note.innerHTML = originalNote;
-        });
-    });
   }
 
   /* ===== 站点品牌（页脚部分由 site-footer.js 处理） ===== */
@@ -441,7 +413,6 @@
       allDiscussions = data.discussions || [];
       renderDiscussionsPage();
       renderContributors(data.contributors);
-      bindJoinForm();
     } catch (e) {
       var listEl = document.getElementById("discussionList");
       if (listEl) listEl.innerHTML = '<div class="community__empty">讨论加载失败，请稍后再试</div>';

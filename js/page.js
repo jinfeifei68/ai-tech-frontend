@@ -1,5 +1,5 @@
 /**
- * AI科技前沿 — 内容页面逻辑（团队介绍/投稿须知/联系方式/隐私政策等）
+ * AI科技前沿 · 学习交流 — 内容页面逻辑（团队介绍/投稿须知/联系方式/隐私政策等）
  * ============================================ */
 
 (function () {
@@ -94,14 +94,14 @@
     var baseUrl = "https://ai.feige68.dpdns.org";
     var pageUrl = baseUrl + "/page.html?id=" + encodeURIComponent(page.id);
 
-    document.title = page.title + " — " + (siteNameCache || "AI 科技前沿");
+    document.title = page.title + " — " + (siteNameCache || "AI科技前沿 · 学习交流");
 
     var canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) canonical.setAttribute("href", pageUrl);
 
-    setMetaTag('meta[property="og:title"]', page.title + " — " + (siteNameCache || "AI 科技前沿"));
+    setMetaTag('meta[property="og:title"]', page.title + " — " + (siteNameCache || "AI科技前沿 · 学习交流"));
     setMetaTag('meta[property="og:url"]', pageUrl);
-    setMetaTag('meta[name="twitter:title"]', page.title + " — " + (siteNameCache || "AI 科技前沿"));
+    setMetaTag('meta[name="twitter:title"]', page.title + " — " + (siteNameCache || "AI科技前沿 · 学习交流"));
   }
 
   /* ===== 获取 URL 参数 ===== */

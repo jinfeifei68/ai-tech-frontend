@@ -1,5 +1,5 @@
 /**
- * AI科技前沿 — 文章详情页逻辑
+ * AI科技前沿 · 学习交流 — 文章详情页逻辑
  * ============================================ */
 
 (function () {
@@ -100,12 +100,12 @@
     var section = isSkill ? (pathLabels[article.path] || article.path || "技能教程") : (catLabels[article.category] || article.category || "AI 要闻");
 
     /* Title & Canonical */
-    document.title = article.title + " — " + (siteNameCache || "AI 科技前沿");
+    document.title = article.title + " — " + (siteNameCache || "AI科技前沿 · 学习交流");
     var canonical = document.querySelector('link[rel="canonical"]');
     if (canonical) canonical.setAttribute("href", pageUrl);
 
     /* Open Graph */
-    setMetaTag('meta[property="og:title"]', article.title + " — " + (siteNameCache || "AI 科技前沿"));
+    setMetaTag('meta[property="og:title"]', article.title + " — " + (siteNameCache || "AI科技前沿 · 学习交流"));
     setMetaTag('meta[property="og:description"]', description);
     setMetaTag('meta[property="og:type"]', "article");
     setMetaTag('meta[property="og:url"]', pageUrl);
@@ -114,7 +114,7 @@
     setMetaTag('meta[property="article:tag"]', typeName);
 
     /* Twitter */
-    setMetaTag('meta[name="twitter:title"]', article.title + " — " + (siteNameCache || "AI 科技前沿"));
+    setMetaTag('meta[name="twitter:title"]', article.title + " — " + (siteNameCache || "AI科技前沿 · 学习交流"));
     setMetaTag('meta[name="twitter:description"]', description);
     setMetaTag('meta[name="twitter:image"]', image);
 
@@ -133,10 +133,10 @@
       "url": pageUrl,
       "datePublished": article.date || new Date().toISOString().slice(0, 10),
       "dateModified": article.date || new Date().toISOString().slice(0, 10),
-      "author": { "@type": "Organization", "name": "AI 科技前沿" },
+      "author": { "@type": "Organization", "name": "AI科技前沿 · 学习交流" },
       "publisher": {
         "@type": "Organization",
-        "name": "AI 科技前沿",
+        "name": "AI科技前沿 · 学习交流",
         "logo": { "@type": "ImageObject", "url": baseUrl + "/favicon.svg" },
       },
       "articleSection": section,
@@ -197,7 +197,7 @@
     var isSkill = type === "skill";
 
     /* 标题 */
-    document.title = article.title + " — " + (siteNameCache || "AI 科技前沿");
+    document.title = article.title + " — " + (siteNameCache || "AI科技前沿 · 学习交流");
     setArticleMeta(article, type);
 
     /* 面包屑 */
@@ -258,6 +258,22 @@
         : (article.reads || "0") + " 阅读";
     }
 
+    /* 原文链接（转载/聚合内容：展示来源并跳转原文，本站不存全文与原图） */
+    var sourceEl = document.getElementById("articleSource");
+    if (sourceEl) {
+      var sourceUrl = article.sourceUrl || article.source_link || "";
+      var sourceName = article.source || article.sourceName || "";
+      var sourceLink = document.getElementById("articleSourceLink");
+      var sourceNameEl = document.getElementById("articleSourceName");
+      if (sourceUrl && !isSkill) {
+        sourceLink.href = sourceUrl;
+        sourceNameEl.textContent = sourceName ? "查看原文：" + sourceName : "查看原文";
+        sourceEl.style.display = "";
+      } else {
+        sourceEl.style.display = "none";
+      }
+    }
+
     /* Hero 图片（技能无主图时隐藏） */
     var heroEl = document.getElementById("articleHero");
     if (heroEl) {
@@ -284,6 +300,12 @@
         /* marked 未加载，降级为纯文本 */
         bodyEl.innerHTML = "<p>" + esc(content).replace(/\n/g, "<br>") + "</p>";
       }
+    }
+
+    /* AI 生成内容显式标识（合规要求：显著位置标注） */
+    var aiEl = document.getElementById("aiDisclosure");
+    if (aiEl) {
+      aiEl.style.display = "flex";
     }
 
     /* 底部按钮与相关内容标题 */

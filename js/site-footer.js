@@ -1,5 +1,5 @@
 /**
- * AI科技前沿 — 页脚品牌同步（全站子页面共用）
+ * AI科技前沿 · 学习交流 — 页脚品牌同步（全站子页面共用）
  * 依赖：各子页面页脚需包含与首页一致的 DOM 结构：
  *   #footerLogoText / #footerDescText / #footerSocial
  *   #footerResourceLinks / #footerAboutLinks / #footerCopyText / #footerBuiltText

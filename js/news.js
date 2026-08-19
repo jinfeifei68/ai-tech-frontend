@@ -1,5 +1,5 @@
 /**
- * AI科技前沿 — AI 要闻列表独立页逻辑
+ * AI科技前沿 · 学习交流 — AI 要闻列表独立页逻辑
  * ============================================ */
 
 (function () {
@@ -74,7 +74,9 @@
     var bc = a.badgeType === "hot" ? " news-card__badge--hot" : a.badgeType === "new" ? " news-card__badge--new" : "";
     return '<article class="news-card reveal reveal--visible" data-category="' + esc(a.category) + '" data-id="' + esc(a.id) + '" style="cursor:pointer">' +
       '<div class="news-card__img lazy-img" data-bg="' + esc(a.image) + '">' +
+      '<span class="news-card__ai">AI 生成</span>' +
       (a.badge ? '<span class="news-card__badge' + bc + '">' + esc(a.badge) + '</span>' : '') +
+      (a.source ? '<span class="news-card__source">' + esc(a.source) + '</span>' : '') +
       '</div><div class="news-card__body">' +
       '<span class="news-card__cat">' + esc(catLabels[a.category] || a.category) + '</span>' +
       '<h3 class="news-card__title">' + esc(a.title) + '</h3>' +
